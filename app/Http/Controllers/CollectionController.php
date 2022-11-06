@@ -97,8 +97,13 @@ class CollectionController extends Controller
         return $request->validate(\Arr::only($rules, $request->keys()));
     }
 
-    public function migrate(Tenant $app, ?int $collection = null, Request $request)
+    public function migrate(Tenant $app, int|Request $collection = null, Request $request)
     {
+        if($collection instanceof Request) {
+            $request = $collection;
+            $collection = null;
+        }
+
         $forces = collect($request->get('force', []));
 
         try {
