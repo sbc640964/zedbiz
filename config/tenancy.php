@@ -16,7 +16,7 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => explode(',', env('TENANCY_CENTRAL_DOMAINS', 'beta.zedone.one-site.co.il')),
+    'central_domains' => explode(',', env('TENANCY_CENTRAL_DOMAINS', 'localhost,127.0.0.1')),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
