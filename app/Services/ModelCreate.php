@@ -10,7 +10,7 @@ class ModelCreate
 {
     private string $modelName;
     private string $tableName;
-    private Collection $columns;
+    private \Illuminate\Support\Collection $columns;
     private Collection $collection;
     private Tenant $app;
 
