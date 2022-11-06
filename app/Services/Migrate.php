@@ -17,20 +17,20 @@ class Migrate
     private bool $withoutForeign;
     private bool $createTable;
 
-    public function __construct(string $tableName, array $columns, bool $withoutForeign = false, bool $createTable = true)
+    public function __construct(string $tableName, Collection $columns, bool $withoutForeign = false, bool $createTable = true)
     {
         $this->tableName = $tableName;
-        $this->columns = collect($columns);
+        $this->columns = $columns;
         $this->withoutForeign = $withoutForeign;
         $this->createTable = $createTable;
     }
 
-    public static function make(string $tableName, array $columns, bool $withoutForeign = false, bool $createTable = true): self
+    public static function make(string $tableName, Collection $columns, bool $withoutForeign = false, bool $createTable = true): self
     {
         return new static($tableName, $columns, $withoutForeign);
     }
 
-    public static function makeForeign(string $tableName, array $columns): self
+    public static function makeForeign(string $tableName, Collection $columns): self
     {
         return new static($tableName, $columns, false, false);
     }
