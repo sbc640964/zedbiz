@@ -18,4 +18,4 @@ yarn-error.log
 # Project exclude paths
 /storage/app/
 /storage/clockwork/
-/storage/framework/
+/storage/framework/*
