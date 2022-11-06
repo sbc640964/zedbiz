@@ -10,7 +10,7 @@ class ModelCreate
 {
     private string $modelName;
     private string $tableName;
-    private array $columns;
+    private Collection $columns;
     private Collection $collection;
     private Tenant $app;
 
