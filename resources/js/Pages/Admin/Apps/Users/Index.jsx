@@ -10,4 +10,4 @@ function Index(props) {
 
 Index.layout = page => <Authenticated children={page} title={'Users'} />;
 
-export default Index;
+export default Index

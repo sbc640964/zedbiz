@@ -9,13 +9,10 @@ use App\Http\Controllers\OptionsController;
 use App\Http\Controllers\RecordsController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UsersController;
-use App\Imports\RecordsImport;
-use App\Models\Collection;
-use App\Models\Tenant;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Tenant\UsersController as TenantUsersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,31 +32,6 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
-
-Route::get('test', function () {
-    return Tenant::find(8)->run(function(){
-
-        $collection = Collection::find(6);
-        $import = new RecordsImport($collection);
-        $rows = Excel::toCollection($import, 'imports/ichud.xlsx');
-
-        //mapping by first row
-//        $import = new RecordsImport($collection, $mapping);
-
-        $rules = collect($import->rules())->mapWithKeys(function ($rule, $key) {
-            return ['*.' . $key => $rule];
-        })->toArray();
-
-        $validator = Validator::make($rows->first()->toArray(), $rules);
-
-//        $validator = $rows->map(function ($chunk) use ($rows, $rules, $import) {
-//            return Validator::make($chunk->toArray(), $rules);
-//        });
-
-        dd($validator->errors());
-        dd($validator->map(fn($validator) => $validator->errors()->toArray()));
-    });
 });
 
 Route::get('/dashboard', function () {
@@ -87,6 +59,13 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
         Route::get('/', [TenantController::class, 'show']);
 
         Route::get('/select-content-page-options', [TenantController::class, 'selectContentPageOptions'])->name('.select-content');
+
+        Route::get('/users', [TenantUsersController::class, 'index'])->name('.users');
+        Route::post('/users', [TenantUsersController::class, 'store'])->name('.users.store');
+        Route::get('/users/{user}', [TenantUsersController::class, 'show'])->name('.users.show');
+        Route::get('/users/{user}/edit', [TenantUsersController::class, 'edit'])->name('.users.edit');
+        Route::put('/users/{user}', [TenantUsersController::class, 'update'])->name('.users.update');
+        Route::delete('/users/{user}', [TenantUsersController::class, 'destroy'])->name('.users.destroy');
 
         Route::get('/menu', [MenusController::class, 'index'])->name('.menu');
         Route::get('/menu/new', [MenusController::class, 'create'])->name('.menu.create');

@@ -26,6 +26,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return true;
     }
 
+    public function initialize()
+    {
+        tenancy()->initialize($this);
+    }
+
+    public function end($originalTenant = null)
+    {
+        $originalTenant ? tenancy()->initialize($originalTenant) : tenancy()->end();
+    }
+
     public function selectContentPageOptions()
     {
         return $this->run(function () {

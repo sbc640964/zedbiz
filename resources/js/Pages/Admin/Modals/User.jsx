@@ -29,7 +29,14 @@ function User({user, open, setOpen, onClose}) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        post(route('admin.users.store'), {
+        const isAdmin = route().current('admin.*');
+        const isApp = route().current('admin.apps.*');
+
+        const url = isAdmin
+            ? (isApp ? route('admin.apps.edit.users.store', route().params) : route('admin.users.store'))
+            : route('users.store');
+
+        post(url, {
             preserveScroll: true,
             onSuccess: () => {
                 setOpen(false);

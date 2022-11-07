@@ -83,7 +83,7 @@ export default function Authenticated({children, title}) {
                                             Dashboards
                                         </NavLink>
 
-                                        <NavLink href={route('admin.users')} active={route().current('dashboard')} icon={'users'}>
+                                        <NavLink href={route('admin.apps.edit.users', app.id)} active={route().current('admin.apps.edit.users', app.id)} icon={'users'}>
                                             Users
                                         </NavLink>
 
