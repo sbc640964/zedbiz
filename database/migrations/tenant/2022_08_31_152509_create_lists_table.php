@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('query_mode')->default('default');
             $table->string('name');
             $table->string('description')->nullable();
-            $table->string('slug');
+//            $table->string('slug');
             $table->json('columns')->nullable();
             $table->json('settings')->nullable();
             $table->json('permissions')->nullable();
