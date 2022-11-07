@@ -23,11 +23,13 @@ class ColumnsController extends Controller
 
     public function store(Tenant $app, $collection, Request $request)
     {
-        $attributes = $this->validateData($app, $request);
+        $collection = $app->run(fn() => Collection::findOrFail($collection));
+
+        $attributes = $this->validateData($app, $request, $collection);
+
         $app->run(function () use ($app, $collection, $attributes) {
-            $collection = Collection::findOrFail($collection);
-            $columns = $collection->columns ?? [];
-            $columns[] = array_merge($attributes, ['id' => Str::uuid()]);
+            $columns = $collection->columns ?? collect();
+            $columns->add(array_merge($attributes, ['id' => Str::uuid()]));
             $collection->columns = $columns;
             $collection->save();
         });
@@ -43,14 +45,18 @@ class ColumnsController extends Controller
 
     public function update(Tenant $app, $collection, $column, Request $request)
     {
-        $attributes = $this->validateData($app, $request);
+        $collection = $app->run(fn() => Collection::findOrFail($collection));
+
+        $attributes = $this->validateData($app, $request, $collection);
 
         $app->run(function () use ($app, $collection, $column, $attributes) {
-            $collection = Collection::findOrFail($collection);
-            $columns = $collection->columns ?? [];
-            $columns = array_filter($columns, fn($c) => $c['id'] !== $column);
-            $columns[] = $attributes;
-            $collection->columns = array_values($columns);
+            $columns = $collection->columns->map(function ($item) use ($column, $attributes) {
+                if ($item['id'] === $column) {
+                    return array_merge($item, $attributes);
+                }
+                return $item;
+            });
+            $collection->columns = $columns;
             $collection->save();
         });
 
@@ -64,8 +70,9 @@ class ColumnsController extends Controller
     {
         $app->run(function () use ($app, $collection, $column) {
             $collection = Collection::findOrFail($collection);
-            $columns = $collection->columns ?? [];
-            $columns = array_filter($columns, fn($c) => $c['id'] !== $column);
+            $columns = $collection->columns->filter(function ($item) use ($column) {
+                return $item['id'] !== $column;
+            });
             $collection->columns = $columns;
             $collection->save();
         });
@@ -92,7 +99,7 @@ class ColumnsController extends Controller
         ]);
     }
 
-    public function validateData(Tenant $app, Request $request)
+    public function validateData(Tenant $app, Request $request, Collection $collection)
     {
         $types = [
             'text' => 'string',
@@ -124,7 +131,15 @@ class ColumnsController extends Controller
             'id' => 'nullable|uuid',
             'label' => 'required|string|max:255',
             'type' => 'required|string|max:255|in:'.implode(',', array_keys($types)),
-            'name' => 'required|string|max:255|regex:/^[a-zA-Z0-9_]+$/',
+            'name' => ['required','string','max:255','regex:/^[a-zA-Z0-9_]+$/', function ($attribute, $value, $fail) use ($collection, $app, $request) {
+                if(($collection->columns ?? collect())
+                    ->filter(fn($c) => $c['id'] !== $request->id)
+                    ->pluck('name')
+                    ->contains($value)
+                ) {
+                    $fail('The name has already been taken.');
+                }
+            }],
             'description' => 'nullable|string|max:255',
             'required' => 'nullable|boolean',
             'default' => 'nullable|string|max:255',
@@ -158,23 +173,19 @@ class ColumnsController extends Controller
             'select_group_by_selector' => 'nullable|string|max:255',
             'select_extra_type' => 'nullable|string|max:255|in:icon,color,image,subtext',
             'select_icon_selector' => [
-                Rule::requiredIf('relation' === $request->get('type')
-                    && $request->get('select_extra_type') === 'icon'),
+                Rule::requiredIf(fn() => 'relation' === $request->get('type') && $request->get('select_extra_type') === 'icon'),
                 'string|max:255'
             ],
             'select_image_selector' => [
-                Rule::requiredIf('relation' === $request->get('type')
-                    && $request->get('select_extra_type') === 'image'),
+                Rule::requiredIf(fn() => 'relation' === $request->get('type') && $request->get('select_extra_type') === 'image'),
                 'string|max:255'
             ],
             'select_color_selector' => [
-                Rule::requiredIf('relation' === $request->get('type')
-                    && $request->get('select_extra_type') === 'color'),
+                Rule::requiredIf(fn() => 'relation' === $request->get('type') && $request->get('select_extra_type') === 'color'),
                 'string|max:255'
             ],
             'select_subtext_selector' => [
-                Rule::requiredIf('relation' === $request->get('type')
-                    && $request->get('select_extra_type') === 'subtext'),
+                Rule::requiredIf(fn() => 'relation' === $request->get('type') && $request->get('select_extra_type') === 'subtext'),
                 'string|max:255'
             ],
         ]);
