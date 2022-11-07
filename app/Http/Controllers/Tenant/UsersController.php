@@ -15,10 +15,12 @@ class UsersController extends Controller
 
 
     public function isAdmin(){
-        if(is_null($this->isAdministrator)){
-            $this->isAdministrator = request()->route()->parameter('app', false);
-            $this->isAdministrator && $this->appTenant = Tenant::findOrFail($this->isAdministrator);
+        $id = request()->route()->parameter('app', false);
+        if(is_null($this->isAdministrator) && $id){
+            $this->isAdministrator = $id;
+            $this->appTenant = Tenant::findOrFail($id);
         }
+
         return $this->isAdministrator;
     }
 
