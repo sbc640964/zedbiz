@@ -81,6 +81,7 @@ class RecordsController extends Controller
         }
 
         $attributes = $this->validateForm($form, $request);
+        $attributes['user_created_id'] = auth()->id();
         $form->model()->create($attributes);
     }
 
@@ -90,6 +91,7 @@ class RecordsController extends Controller
         $record = $form->records()->findOrFail($record);
 
         $attributes = $this->validateForm($form, $request);
+        $attributes['user_last_modified_id'] = auth()->id();
         $record->update($attributes);
 
         return back();
