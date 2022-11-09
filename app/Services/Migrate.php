@@ -23,6 +23,8 @@ class Migrate
         $this->columns = $columns;
         $this->withoutForeign = $withoutForeign;
         $this->createTable = $createTable;
+
+        return $this;
     }
 
     public static function make(string $tableName, Collection $columns, bool $withoutForeign = false, bool $createTable = true): self
@@ -35,39 +37,47 @@ class Migrate
         return new static($tableName, $columns, false, false);
     }
 
-    public function up()
+    public function up(): bool
     {
-        if($this->createTable) {
-            Schema::create($this->tableName, function (Blueprint $table) {
+        $success = true;
 
-                $this->table = $table;
+        try {
+            if($this->createTable) {
+                Schema::create($this->tableName, function (Blueprint $table) {
 
-                $table->id();
+                    $this->table = $table;
 
-                $this->columns->each(function ($column) use ($table) {
-                    $this->addColumn($column);
-                });
+                    $table->id();
 
-                $table->foreignId('user_created_id')
-                    ->constrained('users');
-
-                $table->foreignId('user_last_modified_id')
-                    ->nullable()
-                    ->constrained('users');
-
-                $table->timestamps();
-            });
-        } else {
-            Schema::table($this->tableName, function (Blueprint $table) {
-                $this->table = $table;
-                $this->columns->each(function ($column) use ($table) {
-                    if($column['type'] === 'relation') {
+                    $this->columns->each(function ($column) use ($table) {
                         $this->addColumn($column);
-                    }
+                    });
+
+                    $table->foreignId('user_created_id')
+                        ->constrained('users');
+
+                    $table->foreignId('user_last_modified_id')
+                        ->nullable()
+                        ->constrained('users');
+
+                    $table->timestamps();
                 });
-            });
+            } else {
+                Schema::table($this->tableName, function (Blueprint $table) {
+                    $this->table = $table;
+                    $this->columns->each(function ($column) use ($table) {
+                        if($column['type'] === 'relation') {
+                            $this->addColumn($column);
+                        }
+                    });
+                });
+            }
+        }
+        catch (\Throwable $e) {
+            $success = false;
         }
 
+        return $success;
     }
 
     public function down()
@@ -75,11 +85,18 @@ class Migrate
         Schema::dropIfExists($this->tableName);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function addColumn($column)
     {
         $column = (object) $column;
 
         $type = $column->type;
+
+        if(!method_exists($this, $type)) {
+            throw new \Exception('Method ' . $type . ' does not exist in Migration class');
+        }
 
         $columnBuilder = $this->$type($column);
 
@@ -87,8 +104,8 @@ class Migrate
             $columnBuilder->unique();
         }
 
-        if($this->createTable){
-            $columnBuilder->nullable(!$column->required ?? false);
+        if($this->createTable && !$column->required){
+            $columnBuilder->nullable();
         }
 
     }
@@ -204,8 +221,8 @@ class Migrate
 
         return !collect($foreignKeysNames)->contains($foreignKeyName);
 
-        return !collect($foreignKeys)->contains(function ($foreign) use ($column) {
-            return $foreign->getLocalColumns()[0] === $column->name;
-        });
+//        return !collect($foreignKeys)->contains(function ($foreign) use ($column) {
+//            return $foreign->getLocalColumns()[0] === $column->name;
+//        });
     }
 }
