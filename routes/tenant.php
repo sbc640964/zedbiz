@@ -44,7 +44,7 @@ Route::middleware([
 
         Route::post('/{collection}/import/validate', [ImportController::class, 'validateRows'])->name('import.validate');
         Route::post('/{collection}/import/store', [ImportController::class, 'store'])->name('import.store');
-        Route::get('/{collection:slug}/lists/{list}', [ScreenController::class, 'list'])->name('tenant.collections.lists.show');
+        Route::get('/{collection:slug}/list/{list?}', [ScreenController::class, 'list'])->name('tenant.collections.lists.show');
 
 
         Route::get('__collectionsApi/search-records/{form}/{field}', [RecordsController::class, 'search'])->name('search-records');

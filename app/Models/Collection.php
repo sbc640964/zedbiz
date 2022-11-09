@@ -136,18 +136,17 @@ class Collection extends Model
 
     /** MIGRATE METHODS */
 
-    public function migrate($force = false, $withoutForeign = false)
+    public function migrate($force = false, $withoutForeign = false) : bool
     {
         $hasTable = $this->has_table;
 
         if($force && $hasTable) {
             $this->drop();
         } elseif(!$force && $hasTable) {
-
             return false;
         }
 
-        Migrate::make($this->table_name ?? $this->slug, $this->columns, $withoutForeign)->up();
+        return Migrate::make($this->table_name ?? $this->slug, $this->columns, $withoutForeign)->up();
     }
 
     public function drop()
@@ -166,4 +165,57 @@ class Collection extends Model
     }
 
     /** END MIGRATE METHODS */
+
+    /** METHODS */
+
+    /**
+     * return fake ListCollection from collection columns
+     * @return ListCollection
+     */
+
+    public function getDefaultList(): ListCollection
+    {
+        if(!empty($this->settings['default_list'])
+            && $this->settings['default_list']
+            && $list = ListCollection::find($this->settings['default_list'])
+        ) {
+            return $list;
+        }
+
+        $list = new ListCollection();
+        $list->collection_id = $this->id;
+        $list->setRelation('collection', $this);
+        $list->type = 'table';
+        $list->query_mode = 'sql_raw';
+        $list->settings = [
+            'actions' => [],
+            'columns' => $this->columns
+                ->map(function ($column) {
+                    $column = (object) $column;
+                    return [
+                        'id' => uuid_create(),
+                        'name' => $column->name,
+                        'show' => true,
+                        'sortable' => true,
+                        'searchable' => true,
+                        'label' => $column->label,
+                        'type' => $column->type,
+                    ];
+                })->prepend([
+                    'id' => uuid_create(),
+                    'name' => 'id',
+                    'show' => true,
+                    'type' => 'id',
+                    'label' => 'ID',
+                ])->toArray(),
+            'raw_query' => 'SELECT '. $this->columns->pluck('name')->join(',') .' FROM ' . $this->table_name,
+            'enable_add_new' => true,
+            'query_group_by_id' => true,
+        ];
+        $list->name = $this->name;
+
+        return $list;
+    }
+
+    /** END METHODS */
 }
