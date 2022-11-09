@@ -34,6 +34,22 @@ Route::get('/', function () {
     ]);
 });
 
+//Route::get('/createUser', function () {
+//
+//    if(\App\Models\User::count() == 0){
+//        \App\Models\User::create([
+//            'name' => '',
+//            'phone' => '',
+//            'nikname' => '',
+//            'password' => '',
+//            'email' => ''
+//        ]);
+//    }
+//
+//    //return to login page
+//    return redirect()->route('login');
+//});
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
