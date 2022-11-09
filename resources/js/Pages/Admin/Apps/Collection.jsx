@@ -2,7 +2,6 @@ import Authenticated from "@/Layouts/Authenticated";
 import App from "@/Layouts/App";
 import ContainerPage from "@/Components/Table/ContainerPage";
 import CollectionLayout from "@/Layouts/CollectionLayout";
-import {collect} from "collect.js";
 import {useEffect, useState} from "react";
 import SectionCard from "@/Components/Card/SectionCard";
 import Input from "@/Components/Form/Input";
@@ -12,15 +11,13 @@ import {get, last, upperFirst} from "lodash";
 import Switcher from "@/Components/Form/Switcher";
 import IconPicker from "@/Components/Form/IconPicker";
 import Select from "@/Components/Form/Select";
-import FieldRow from "@/Components/Form/FieldRow";
-import MenuItem from "@/Components/Admin/MenuItem";
-import NavLink from "@/Components/NavLink";
-import Button from "@/Components/Button";
 import MenuCollection from "@/Components/Admin/MenuCollection";
-import Dropdown from "@/Components/Dropdown";
-import Icon from "@/Components/Icon";
 import Import from "@/Pages/Admin/Modals/Import";
 import DropdownCollectionActions from "@/Components/DropdownCollectionActions";
+import Button from "@/Components/Button";
+import {Inertia} from "@inertiajs/inertia";
+import Alert from "@/Components/Alert";
+import {InertiaLink} from "@inertiajs/inertia-react";
 
 function Collection(props) {
 
@@ -33,9 +30,9 @@ function Collection(props) {
     }, [errors]);
 
 
-    function clearError(e) {
-        setErrorsBag(collect(errorsBag).filter((error, key) => key !== e.target.name).all());
-    }
+    // function clearError(e) {
+    //     setErrorsBag(collect(errorsBag).filter((error, key) => key !== e.target.name).all());
+    // }
 
     const urlUpdate = route('admin.apps.edit.collections.update', {
         app: app.id,
@@ -51,16 +48,27 @@ function Collection(props) {
         value: get(collection, name, boolean ? false : defaultValue ?? ''),
     });
 
+    function migrate() {
+        Inertia.post(route('admin.apps.edit.collections.migrate', {
+            app: app.id,
+            collection: collection.id
+        }));
+    }
+
     return (
         <>
-
             <ContainerPage
                 label={collection.name}
                 className="bg-transparent shadow-none !rounded-none overflow-visible border-0"
                 actions={[
-                    <DropdownCollectionActions setOpenImportModal={setOpenImportModal}/>
+                    collection.has_table ? <DropdownCollectionActions setOpenImportModal={setOpenImportModal}/> : null,
+                    collection.columns?.length > 0 && collection?.have_update_table ? <Button color="danger" negative className="hover:bg-red-100" action={() => migrate()}>Migrate</Button> : null
                 ]}
             >
+                <Alert type="warning" className="mb-4" show={collection.columns?.length <= 0}>
+                    You have not added any columns to the collection yet, <InertiaLink href={route('admin.apps.edit.collections.columns.create', {app: app.id, collection: collection.id})} className="text-blue-500 hover:underline">Add column</InertiaLink>
+                </Alert>
+
                 <SectionCard label="General">
                     <RealFieldRow {...fieldRowProps("name")}>
                         <Input type="text" className="py-1.5 w-full"/>
@@ -94,22 +102,25 @@ function Collection(props) {
                             <RealFieldRow {...fieldRowProps("settings.menu.is_simple", true)}>
                                 <Switcher/>
                             </RealFieldRow>
-                            <RealFieldRow {...fieldRowProps("settings.menu.list")} show={collection.settings?.menu?.is_simple}>
+                            <RealFieldRow {...fieldRowProps("settings.menu.list")}
+                                          show={collection.settings?.menu?.is_simple}>
                                 <Select
                                     isAsync
                                     defaultOptions
                                     url={route('admin.apps.edit.collections.picker_lists', {
                                         app: app.id,
                                         collection: collection.id
-                                        })}
+                                    })}
                                 />
                             </RealFieldRow>
-                            <RealFieldRow {...fieldRowProps("settings.menu.new_form")} show={collection.settings?.menu?.is_simple}>
+                            <RealFieldRow {...fieldRowProps("settings.menu.new_form")}
+                                          show={collection.settings?.menu?.is_simple}>
                                 <Select
                                     isAsync
                                 />
                             </RealFieldRow>
-                            <RealFieldRow {...fieldRowProps("settings.menu.form_mode")} show={collection.settings?.menu?.is_simple}>
+                            <RealFieldRow {...fieldRowProps("settings.menu.form_mode")}
+                                          show={collection.settings?.menu?.is_simple}>
                                 <Select options={[
                                     {value: 'redirect', label: 'Redirect'},
                                     {value: 'modal', label: 'Modal'},

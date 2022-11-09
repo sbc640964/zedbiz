@@ -2,7 +2,11 @@ import Icon from "@/Components/Icon";
 import {Inertia} from "@inertiajs/inertia";
 import {collect} from "collect.js";
 
-function HeadColumn({ children, className, width, isSortable, column, queryParameters, ajax, ...props }) {
+function HeadColumn({ children, className, width, isSortable, column, queryParameters, show = true, ajax }) {
+
+    if(!show) {
+        return null;
+    }
 
     function sortDirection() {
         return queryParameters.sortColumn === column.name

@@ -1,7 +1,6 @@
 import Fallback from "@/Components/Fallback";
 import {Transition} from "@headlessui/react";
-import {Fragment, useEffect, useState} from "react";
-import {reverse} from "lodash";
+import {useEffect, useState} from "react";
 
 function ContainerPage({label, actions = [], className, fallback, children, inner, ...props}) {
 
@@ -11,6 +10,17 @@ function ContainerPage({label, actions = [], className, fallback, children, inne
         setTransition(true);
         return () => setTransition(false);
     }, []);
+
+    function getActionFallback() {
+
+        const {fallbackAction} = props;
+
+        if(Array.isArray(fallbackAction) || typeof fallbackAction === 'object') {
+            return fallbackAction;
+        }
+
+        return actions[fallbackAction ?? 0];
+    }
 
     return (
         <Transition
@@ -40,7 +50,7 @@ function ContainerPage({label, actions = [], className, fallback, children, inne
                                 image={props?.fallbackImage ?? null }
                                 title={props?.fallbackTitle ?? `No item have been created yet`}
                                 description={props?.fallbackDescription ?? `You can create one by clicking the button below`}
-                                action={props?.fallbackAction ?? ( Array.isArray(actions) ? reverse(actions)[0] : actions)}
+                                action={getActionFallback()}
                             />
                             : children
                         }

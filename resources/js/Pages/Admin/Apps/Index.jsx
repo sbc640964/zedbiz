@@ -1,5 +1,4 @@
 import ContainerPage from "@/Components/Table/ContainerPage";
-import {Head, Link} from "@inertiajs/inertia-react";
 import Authenticated from "@/Layouts/Authenticated";
 import SearchInput from "@/Components/Form/SearchInput";
 import RowHeader from "@/Components/Table/RowHeader";
@@ -26,6 +25,13 @@ function Index(props) {
                 preserveScroll: true,
             });
         }
+    }
+
+    function getAppLink(domain) {
+        const scheme = import.meta.env?.VITE_APPS_PROTOCL ?? window.location.protocol;
+        const port = import.meta.env?.VITE_APPS_PORT ?? window.location.port ?? null;
+        const path = import.meta.env?.VITE_APPS_PATH ?? null;
+        return `${scheme}//${domain.domain}${port ? `:${port}` : ''}${path ? `/${path}` : ''}`;
     }
 
     return (
@@ -69,7 +75,7 @@ function Index(props) {
                                         </span>
                                         <a
                                             target="_blank"
-                                            href={'http://' + domain.domain + ":8080"}
+                                            href={getAppLink(domain)}
                                         >
                                             {domain.domain}
                                         </a>

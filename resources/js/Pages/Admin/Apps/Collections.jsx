@@ -27,12 +27,13 @@ function Collections(props) {
             <ContainerPage
                 label="Collections"
                 actions={[
+                    collections.total > 0 ? <Button color="danger" negative className="hover:bg-red-100" action={() => migrateTables()}>Migrate tables</Button> : null,
                     <Button action={() => setOpenModal(true)}>Create</Button>,
-                    <Button color="danger" negative className="hover:bg-red-100" action={() => migrateTables()}>Migrate tables</Button>
                 ]}
                 fallback={!collections.data.length}
                 fallbackTitle="No collections have been created yet"
                 fallbackDescription="You can create one by clicking the button below"
+                fallbackAction={1}
             >
                 <Table>
                     <RowHeader className="border-t-0">

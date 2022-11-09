@@ -3,7 +3,11 @@ import {useEffect, useRef, useState} from "react";
 import Tooltip from "@/Components/Dialogs/Tooltip";
 import Icon from "@/Components/Icon";
 
-function Column({ children, className, width, isJustifyBetween, tooltip, ...props }) {
+function Column({ children, className, width, isJustifyBetween, tooltip, show = true, ...props }) {
+
+    if(!show) {
+        return null;
+    }
 
     const { multiRows } = props;
     const [isTooltipContainer, setIsTooltipContainer] = useState(false);

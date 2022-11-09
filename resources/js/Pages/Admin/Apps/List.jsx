@@ -33,7 +33,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
     const [confirm, setConfirm] = useState(null);
     const [notFoundShow, setNotFoundShow] = useState(false);
     const [openImportModal, setOpenImportModal] = useState(false);
-    const [isPending, startTransition] = useTransition({
+    const [_, startTransition] = useTransition({
         timeoutMs: 500,
     });
     const [search, setSearch] = useState('');
@@ -193,12 +193,12 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                                     head
                                 />
                             ))}
-                            <HeadColumn width={getWidthActionsColumn()}></HeadColumn>
+                            <HeadColumn show={list.settings.actions.length > 0} width={getWidthActionsColumn()}></HeadColumn>
                         </RowHeader>
                     </div>
                     <Status/>
                     <div>
-                        {records.data.length === 0 && <div className="p-4 text-center text-gray-400 ">No {collection.settings?.plural_label.toLowerCase() ?? 'records'} found</div>}
+                        {records.data.length === 0 && <div className="p-4 text-center text-gray-400 ">No {collection.settings?.plural_label?.toLowerCase?.() ?? 'records'} found</div>}
                         {records.data.map((record) => (
                             <Row key={record.id}>
                                 {list.settings?.bulk_actions?.enabled &&
@@ -218,7 +218,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                                         refreshList={props?.refreshList}
                                    />
                                 ))}
-                                <Column width={getWidthActionsColumn()} className="justify-end">
+                                <Column show={list.settings.actions.length > 0} width={getWidthActionsColumn()} className="justify-end">
                                     <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                                         {list.settings.actions.filter(v => v.enabled && !v?.grouped).map((action, index) => (
                                             <ActionRow
@@ -256,7 +256,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                                                                 icon={action.icon}
                                                                 color="secondary"
                                                                 startIcon
-                                                                action={(e) => getAction(action, record)}
+                                                                action={() => getAction(action, record)}
                                                                 tooltip={action.tooltip}
                                                             >{action.label}</Button>
                                                         ))}

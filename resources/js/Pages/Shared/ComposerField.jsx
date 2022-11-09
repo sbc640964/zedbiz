@@ -24,27 +24,27 @@ function ComposerField({fieldSettings, value, handleChange, errors, form, option
     }
 
     const Component = {
-        'text': {Component: Input, type: 'text'},
-        'email': {Component: Input, type: 'email'},
-        'password': {Component: Input, type: 'password'},
-        'textarea': {Component: Textarea, type: 'textarea'},
-        'select': {Component: Select, options: fieldSettings?.options ?? []},
-        'checkbox': {Component: Checkbox, type: 'checkbox'},
-        'radio': {Component: Checkbox, type: 'radio'},
-        'boolean': {Component: Switcher},
-        'date': {Component: Input, type: 'date'},
-        'datetime': {Component: Input, type: 'datetime-local'},
-        'time': {Component: Input, type: 'time'},
-        'number': {Component: Input, type: 'number'},
-        'currency': {Component: Input, type: 'number'},
-        'file': {Component: Input, type: 'file'},
-        'image': {Component: Input, type: 'file'},
-        'color': {Component: Input, type: 'color'},
-        'url': {Component: Input, type: 'url'},
-        'tel': {Component: Input, type: 'tel'},
-        'range': {Component: Input, type: 'range'},
-        'relation': {Component: Select, isAsync: true, url: getUrlRelation(fieldSettings), defaultOptions: true},
-    }[fieldSettings.type] ?? {Component: Input, type: 'text'}
+        'text': () => ({Component: Input, type: 'text'}),
+        'email': () => ({Component: Input, type: 'email'}),
+        'password': () => ({Component: Input, type: 'password'}),
+        'textarea': () => ({Component: Textarea, type: 'textarea'}),
+        'select': () => ({Component: Select, options: fieldSettings?.options ?? []}),
+        'checkbox': () => ({Component: Checkbox, type: 'checkbox'}),
+        'radio': () => ({Component: Checkbox, type: 'radio'}),
+        'boolean': () => ({Component: Switcher}),
+        'date': () => ({Component: Input, type: 'date'}),
+        'datetime': () => ({Component: Input, type: 'datetime-local'}),
+        'time': () => ({Component: Input, type: 'time'}),
+        'number': () => ({Component: Input, type: 'number'}),
+        'currency': () => ({Component: Input, type: 'number'}),
+        'file': () => ({Component: Input, type: 'file'}),
+        'image': () => ({Component: Input, type: 'file'}),
+        'color': () => ({Component: Input, type: 'color'}),
+        'url': () => ({Component: Input, type: 'url'}),
+        'tel': () => ({Component: Input, type: 'tel'}),
+        'range': () => ({Component: Input, type: 'range'}),
+        'relation': () => ({Component: Select, isAsync: true, url: getUrlRelation(fieldSettings), defaultOptions: true}),
+    }[fieldSettings.type]?.() ?? {Component: Input, type: 'text'}
 
     const size = options?.size;
 
