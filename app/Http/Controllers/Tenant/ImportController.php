@@ -22,7 +22,8 @@ class ImportController extends Controller
             $columnKey = 'rows.*.' . $column['name'];
             $rulesItem = [$column['required'] ? 'required' : 'nullable'];
             if (in_array($column['type'], ['string', 'text', 'email', 'url', 'password', 'textarea', 'select', 'radio', 'checkbox', 'tel'])) {
-                $rulesItem[] = 'string|max:255';
+                $rulesItem[] = 'string';
+                $rulesItem[] = 'max:' . ($column['max'] ?? '255');
             }
             if (in_array($column['type'], ['number', 'currency', 'percent'])) {
                 $rulesItem[] = 'integer';
