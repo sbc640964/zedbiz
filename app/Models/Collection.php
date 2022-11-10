@@ -205,12 +205,13 @@ class Collection extends Model
                     'id' => uuid_create(),
                     'name' => 'id',
                     'show' => true,
-                    'type' => 'id',
+                    'type' => 'text',
                     'label' => 'ID',
                 ])->toArray(),
-            'raw_query' => 'SELECT '. $this->columns->pluck('name')->join(',') .' FROM ' . $this->table_name,
+            'raw_query' => 'SELECT '. $this->columns->pluck('name')->prepend('id')->join(',') .' FROM ' . $this->table_name,
             'enable_add_new' => true,
             'query_group_by_id' => true,
+            'enable_import' => true,
         ];
         $list->name = $this->name;
 
