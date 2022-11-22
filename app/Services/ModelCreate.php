@@ -29,7 +29,7 @@ class ModelCreate
 
     public function create(): void
     {
-        $pathModels = app_path('Models\Tenant').'\\Tenant'.$this->app->id.'\\';
+        $pathModels = join(DIRECTORY_SEPARATOR, [app_path(), 'Models', 'Tenant', "Tenant{$this->app->id}"]);
 
         if ( !is_dir($pathModels) ) {
             mkdir($pathModels);
@@ -37,7 +37,7 @@ class ModelCreate
 
         $contentModelFile = $this->getContentModelFile();
 
-        $fileName = $pathModels. $this->modelName .'.php';
+        $fileName = $pathModels. DIRECTORY_SEPARATOR . $this->modelName .'.php';
 
         file_put_contents($fileName, $contentModelFile);
 
@@ -46,7 +46,8 @@ class ModelCreate
 
     private function getContentModelFile(): string
     {
-        $contentModelFile = file_get_contents(app_path('Models/Tenant/BaseModelTenant.php'));
+
+        $contentModelFile = file_get_contents(join(DIRECTORY_SEPARATOR, [app_path(), 'Models','Tenant', 'BaseModelTenant.php']));
 
         $contentModelFile = Str::of($contentModelFile)
             ->replace(':tenant_id', $this->app->id)

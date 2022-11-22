@@ -64,6 +64,11 @@ class Collection extends Model
         return \DB::table($this->table_name);
     }
 
+    public function pages(): HasMany
+    {
+        return $this->hasMany(Page::class);
+    }
+
     /**
      * @param ...$args
      * @return Model
@@ -116,7 +121,12 @@ class Collection extends Model
 
     public function modelPath(): string
     {
-        return 'App\Models\Tenant\Tenant' . tenant()->id . '\\' . $this->model_name;
+        return join(DIRECTORY_SEPARATOR, [
+            app_path('Models'),
+            'Tenant',
+            'Tenant' . tenant()->id,
+            $this->model_name . '.php'
+        ]);
     }
 
     public function modelNamespace(): string
@@ -146,12 +156,25 @@ class Collection extends Model
             return false;
         }
 
-        return Migrate::make($this->table_name ?? $this->slug, $this->columns, $withoutForeign)->up();
+        $migrate = Migrate::make($this->table_name ?? $this->slug, $this->columns, $withoutForeign)->up();
+
+        if($migrate) {
+            $this->update(['table_name' => $this->table_name]);
+        }
+
+        return $migrate;
     }
 
     public function drop()
     {
         Schema::dropIfExists($this->table_name);
+
+        $this->dropModel();
+
+        $this->update([
+            'table_name' => null,
+            'model_name' => null,
+        ]);
     }
 
     public function migrateForeign()
@@ -162,6 +185,17 @@ class Collection extends Model
     public function createModel()
     {
         ModelCreate::make(tenant(), $this)->create();
+
+        $this->update(['model_name' => $this->model_name]);
+    }
+
+    public function dropModel()
+    {
+        //remove model file
+        $modelPath = join(DIRECTORY_SEPARATOR, [app_path(), 'Models', 'Tenant', 'Tenant' . tenant()->id, $this->model_name . '.php']);
+        if(file_exists($modelPath)) {
+            unlink($modelPath);
+        }
     }
 
     /** END MIGRATE METHODS */
