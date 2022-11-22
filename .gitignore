@@ -20,3 +20,5 @@ package-lock.json
 /storage/app/
 /storage/clockwork/
 /storage/framework/*
+
+/app/Models/Tenant/*
