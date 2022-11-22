@@ -80,7 +80,7 @@ class Collection extends Model
             throw new \Exception('Collection has no model');
         }
 
-        $model = app($this->modelPath());
+        $model = app($this->modelNamespace() . $this->model_name);
 
         return empty($args) ? $model : $model->newInstance(...$args);
     }
