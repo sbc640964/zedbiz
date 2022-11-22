@@ -29,7 +29,7 @@ class RecordsController extends Controller
 
         $collection = Collection::findOrFail($field['relationTable']);
 
-        $columnSearch = $field['relationSelectorLabel'] ?? $collection->settings['primaryColumn'] ??'name';
+        $columnSearch = $field['relationSelectorLabel'] ?? $collection->settings['primaryColumn'] ?? 'name';
 
         $referenceList = $request->get('__reference_list_id');
         $referenceRecord = $request->get('__reference_record_id');

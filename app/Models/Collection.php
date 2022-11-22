@@ -59,7 +59,7 @@ class Collection extends Model
     public function records(): EloquentBuilder|Builder
     {
         if($this->has_model) {
-            return app($this->modelPath())::query();
+            return app($this->modelNamespace() . $this->model_name)::query();
         }
         return \DB::table($this->table_name);
     }
