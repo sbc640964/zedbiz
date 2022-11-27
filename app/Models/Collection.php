@@ -59,7 +59,7 @@ class Collection extends Model
     public function records(): EloquentBuilder|Builder
     {
         if($this->has_model) {
-            return app($this->modelNamespace() . $this->model_name)::query();
+            return $this->model()::query();
         }
         return \DB::table($this->table_name);
     }
@@ -242,7 +242,7 @@ class Collection extends Model
                     'type' => 'text',
                     'label' => 'ID',
                 ])->toArray(),
-            'raw_query' => 'SELECT '. $this->columns->pluck('name')->prepend('id')->join(',') .' FROM ' . $this->table_name,
+            'raw_query' => $this->getRawQueryDefaultList(),
             'enable_add_new' => true,
             'query_group_by_id' => true,
             'enable_import' => true,
@@ -250,6 +250,36 @@ class Collection extends Model
         $list->name = $this->name;
 
         return $list;
+    }
+
+    private function getRawQueryDefaultList(): string
+    {
+        $relations = $this->columns->where('type', 'relation')->map(fn ($column) => (object) $column);
+
+        $sql = 'SELECT '. $this->columns
+                ->where('type', '!=', 'relation')
+                ->pluck('name')
+                ->prepend('id')
+                ->map(fn($column) => "$this->table_name.$column")
+                ->join(',');
+
+        $relations->map(function ($relation) use (&$sql) {
+            $sql .= ', ' . '__relation_' . $relation->name . '.' . ($relation->relationSelectorLabel ?? 'id') . ' as ' . $relation->name;
+        });
+
+        $sql .= ' FROM ' . $this->table_name;
+
+
+        if($relations->count()) {
+            $collectionsRelations = Collection::whereIn('id', $relations->pluck('relationTable'))->get();
+
+            $relations->map(function ($relation) use (&$sql, $collectionsRelations) {
+                $collection = $collectionsRelations->where('id', $relation->relationTable)->first();
+                $collection && $sql .= ' LEFT JOIN ' . $collection->table_name . ' as __relation_' . $relation->name . ' ON __relation_' . $relation->name . '.id = ' . $this->table_name . '.' . $relation->name;
+            });
+        }
+
+        return $sql;
     }
 
     /** END METHODS */

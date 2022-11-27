@@ -151,7 +151,7 @@ function Column({columnId, collection, collections, app}) {
             </SectionCard>
 
             <SectionCard label="Relationship settings" show={data.type === 'relation'} className="mt-10">
-                <FieldRow label="Relation table" required description="The relation table"
+                <FieldRow label="Table" required description="The relation table"
                           errors={getError('relationTable')}>
                     <Select
                         className="w-full text-sm"
@@ -164,7 +164,18 @@ function Column({columnId, collection, collections, app}) {
                     <Select
                         className="w-full text-sm"
                         value={data.relationTableColumn}
-                        handleChange={e => setData('relationTableColumn', e.value ?? value)}
+                        handleChange={e => setData('relationTableColumn', e.value ?? e)}
+                        options={getRelationColumns()}
+                        placeholder="ID"
+                        isClearable
+                    />
+                </FieldRow>
+
+                <FieldRow label="Selector label & search" description="The relation column to show in selector" errors={getError('relationSelectorLabel')}>
+                    <Select
+                        className="w-full text-sm"
+                        value={data.relationSelectorLabel}
+                        handleChange={e => setData('relationSelectorLabel', e.value ?? e)}
                         options={getRelationColumns()}
                         placeholder="ID"
                         isClearable

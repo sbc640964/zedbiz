@@ -6,7 +6,7 @@ import {components} from "react-select";
 import Icon from "@/Components/Icon";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {debounce} from "lodash";
-import collect from "collect.js";
+import collect, {Collection} from "collect.js";
 import {addToast} from "@/helpers";
 
 function Select({size, color, isAsync, handleChange, isCreatable, value, ...props}) {
@@ -67,10 +67,18 @@ function Select({size, color, isAsync, handleChange, isCreatable, value, ...prop
     function getValue() {
         if(!value) return null;
 
-        const _options = collect(options).pluck('options').flatten(1).merge(options).filter().all();
+        const _options = (options instanceof Collection ? options : collect(options))
+            .pluck('options')
+            .flatten(1)
+            .merge(options?.all?.() || options)
+            .filter(i => Boolean(i))
+            .all();
+
+        const _value = props.isMulti && Array.isArray(value) ? value.map(i => i?.value ?? i) : (value?.value || value);
         const current = props?.isMulti
-            ? collect(_options).filter(option => value.includes(option?.value)).all()
-            : collect(_options).first((option) => option?.value === value || option?.value === value?.value);
+            ? collect(_options).filter(option => _value.includes(option?.value)).all()
+            : collect(_options).first((option) => option?.value === _value);
+
         return current ?? (typeof currentValue !== "undefined" ? currentValue : null);
     }
 

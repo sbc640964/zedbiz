@@ -168,6 +168,7 @@ class ColumnsController extends Controller
             }],
 
             'relationTableColumn' => 'nullable|string|max:255',
+            'relationSelectorLabel' => 'nullable|string|max:255',
 
             'select_label_selector' => 'nullable|string|max:255',
             'select_group_by_selector' => 'nullable|string|max:255',
