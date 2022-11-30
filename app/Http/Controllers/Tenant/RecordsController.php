@@ -73,13 +73,22 @@ class RecordsController extends Controller
         $attributes = $this->validateForm($form, $request);
         $attributes['user_created_id'] = auth()->id();
 
-        \DB::transaction(function () use ($request, $attributes, $collectionForm) {
+        \DB::transaction(function () use ($list, $action, $request, $attributes, $collectionForm) {
+
+            $relationshipConfig = $collectionForm->settings['menu']['new_form_sections'] ?? null;
+
+            if($action && $action['relationshipForms']) {
+                $relationshipConfig = $action['relationshipForms'];
+            }elseif($list && $list->settings['add_new_relationship_forms']) {
+                $relationshipConfig = $list->settings['add_new_relationship_forms'];
+            }
+
             $id = $collectionForm->model()->create($attributes);
 
             if(collect(\Arr::dot($request->get('__extra_sections__', [])))->count() > 0){
                 $collectionForm->settings = array_merge($collectionForm->settings, [
                     'menu' => [
-                        'new_form_sections' => $action['relationshipForms'] ?? [],
+                        'new_form_sections' => $relationshipConfig,
                     ]
                 ]);
                 $this->saveExtraSections($collectionForm, $id, $request->get('__extra_sections__'));
@@ -132,7 +141,7 @@ class RecordsController extends Controller
                 ->pluck('id')
                 ->filter()
                 ->diff(collect($items)->pluck('id')->filter());
-            
+
             if($deleteItems->count()){
                 $collection->model()->whereIn('id', $deleteItems->toArray())->delete();
             }
