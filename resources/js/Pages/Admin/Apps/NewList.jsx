@@ -25,6 +25,7 @@ import ActionFormInputs from "@/Components/Admin/ActionFormInputs";
 import ColumnFormInputs from "@/Components/Admin/ColumnFormInputs";
 import {collect} from "collect.js";
 import WidgetListFormInput from "@/Components/Admin/WidgetListFormInput";
+import {getSectionsFormOptions} from "@/helpers";
 
 
 function NewList({collection, app, collections, list, onUpdate}) {
@@ -403,6 +404,18 @@ function NewList({collection, app, collections, list, onUpdate}) {
                             options={collection?.forms ?? []}
                         />
                         <InputError message={errors.settings?.add_new_form}/>
+                    </FieldRow>
+                    <FieldRow label="Relationship" description="" show={data.settings?.enable_add_new && !data.settings?.add_new_form}>
+                        <Select
+                            name="add_new_relationships_forms"
+                            className="w-full text-sm"
+                            value={data.settings?.add_new_relationship_forms}
+                            handleChange={e => setData('settings.add_new_relationship_forms', e?.value ?? e)}
+                            placeholder="Select relationship forms"
+                            options={getSectionsFormOptions(collections, collection)}
+                            isMulti
+                            noOptionsMessage={() => "No relationship forms"}
+                        />
                     </FieldRow>
                     <FieldRow label="View method" description="" show={data.settings?.enable_add_new}>
                         <Select

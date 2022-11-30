@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import BaseToast from "@/Components/Toasts/BaseToast";
+import {collect} from "collect.js";
 
 export function addToast(title, message, type) {
     toast.custom(t => <BaseToast t={t} title={title} message={message} type={type} onClose={() => {}} />);
@@ -267,4 +268,53 @@ export function prepareRulesValidation(columns){
     });
 
     return rules;
+}
+
+
+export function getSectionsFormOptions(collections, collection) {
+    const options = [];
+
+    collect(collections).each(c => {
+        if(c.id !== collection.id) {
+            const columnsRelations = collect(c.columns).filter(c => c.type === 'relation' && c.relationTable === collection.id);
+            if(columnsRelations.count() > 0) {
+                columnsRelations.each(cr => {
+                    options.push({
+                        label: `${c.name} (${cr.unique ? 'Unique' : 'Multiple'})`,
+                        subtext: `Column foreign key: ${cr.name}`,
+                        value: {
+                            collection: c.id,
+                            column: {
+                                collection: c.id,
+                                id: cr.id,
+                                name: cr.name
+                            }
+                        },
+                    });
+                });
+            }
+        }
+    });
+
+    const columnsRelations = collect(collection.columns).filter(c => c.type === 'relation');
+
+    if(columnsRelations.count() > 0) {
+        columnsRelations.each(cr => {
+            const collectionRelation = collect(collections).first(c => c.id === cr.relationTable);
+            options.push({
+                label: `${collectionRelation.name} (Unique)`,
+                subtext: `Column foreign key: ${cr.name}`,
+                value: {
+                    collection: collectionRelation.id,
+                    column: {
+                        id: cr.id,
+                        name: cr.name,
+                        collection: collection.id
+                    }
+                }
+            });
+        });
+    }
+
+    return options;
 }

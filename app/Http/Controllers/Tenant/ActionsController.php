@@ -86,12 +86,20 @@ class ActionsController extends Controller
     {
         [$collectionForm, $form] = $this->getForm($list, $action);
 
-        $record = $this->getFieldsValues($form, $action, $list);
+        $relationship = empty($action['relationshipForms']) ? null : $action['relationshipForms'];
+
+        $collectionsRelationship = $relationship ? Collection::findMany(collect($action['relationshipForms'])->pluck('collection')->flatten()->toArray()) : null;
+
+        $record = $this->getFieldsValues($form, $action, $list, $relationship ? [$relationship, $collectionsRelationship] : null);
 
         $action =  [
             'id' => Str::uuid(),
             'updateModals' => request('isModal'),
             'form' => $form->toArray(),
+            'relationships' => [
+                'config' => $relationship,
+                'objects' => $collectionsRelationship,
+            ],
             'action' => $action,
             'list' => $list->toArray(),
             'record' => $record,
@@ -114,15 +122,19 @@ class ActionsController extends Controller
         return false;
     }
 
-    public function getFieldsValues($form, $action, $list){
+    public function getFieldsValues($form, $action, $list, $relationship = null){
         $return = [
             '__reference_record_id' => request('record'),
             '__reference_list_id' => $list->id,
             '__reference_action_id' => $action['id'],
         ];
 
+        if($relationship) {
+            $this->setRelations($form, $relationship);
+        }
+
         if($action['fillForm'] ?? false) {
-            $record = $this->getFormModel($action, $form);
+            $record = $this->getFormModel($action, $form, $relationship);
             $record->setHidden(['created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by']);
             $newCasts = collect($form->columns)->whereIn('type', ['date', 'datetime', 'timestamp'])->mapWithKeys(function($item) {
                 return [$item['name'] => 'datetime:Y-m-d H:i:s'];
@@ -133,7 +145,40 @@ class ActionsController extends Controller
             $return = array_merge($return, $this->getDefaultValues($form));
         }
 
-        return $return;
+        $relationsModel = collect($return)->filter(function($item, $key) {
+            return Str::startsWith($key, '__relation');
+        });
+
+        return array_merge($return, ['__extra_sections__' => $relationsModel->mapWithKeys(function($item, $key) {
+            return [Str::after($key, '__relation') => $item];
+        })->toArray()]);
+    }
+
+    public function setRelations($collectionParent, $relationship)
+    {
+        $relationshipConfig = $relationship[0];
+        $collectionsRelationship = $relationship[1];
+
+        collect($relationshipConfig)->each(function ($item, $key) use ($collectionParent, $collectionsRelationship) {
+
+            $collectionParent->model()::resolveRelationUsing('__relation' . $key, function ($model) use ($item, $collectionsRelationship) {
+                $collection = $collectionsRelationship->firstWhere('id', $item['collection']);
+                $method = $item['collection'] === $item['column']['collection'] ? 'hasMany' : 'belongsTo';
+
+                if($method === 'hasMany' && ($collection->columns->firstWhere('name', $item['column']['name'])['unique'] ?? false) ){
+                    $method = 'hasOne';
+                }
+
+                $foreignName = $item['column']['name'];
+                $localName = $collection->columns->firstWhere('name', $item['column']['name'])['relationTableColumn'] ?? 'id';
+
+                return $model->{$method}($collection->model()::class, $foreignName, $localName)
+                    ->withCasts(collect($collection->columns)->whereIn('type', ['date', 'datetime', 'timestamp'])->mapWithKeys(function($item) {
+                        return [$item['name'] => 'datetime:Y-m-d H:i:s'];
+                    })->toArray());
+            });
+
+        });
     }
 
     private function getDefaultValues($form)
@@ -201,7 +246,7 @@ class ActionsController extends Controller
         return [$collectionForm ?? $list->collection, $form];
     }
 
-    private function getFormModel($action, $form)
+    private function getFormModel($action, $form, $relationship = null)
     {
         $id = $action['record'] ?? request('record');
 
@@ -212,7 +257,12 @@ class ActionsController extends Controller
                 'ROW' => $this->getRowList(),
             ]);
         }
-        return $form->model()::findOrFail($id);
+
+        return $form->model()::when($relationship, function ($query) use ($relationship) {
+            $query->with(collect($relationship[0])->map(function ($item, $key) {
+                return '__relation' . $key;
+            })->values()->toArray());
+        })->findOrFail($id);
     }
 
     private function getRowList()

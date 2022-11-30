@@ -2,24 +2,29 @@ import EmptyModal from "@/Components/Dialogs/EmptyModal";
 import {useForm} from "@inertiajs/inertia-react";
 import ComposerField from "@/Pages/Shared/ComposerField";
 import Button from "@/Components/Button";
-import {get} from "lodash";
+import {get, isEqual, set} from "lodash";
 import {collect} from "collect.js";
 import {appUrlName} from "@/helpers";
+import {v4 as uuid} from "uuid";
+import {useState} from "react";
 
-function FormCollectionModal({open, setOpen, onClose, record, app, list, form, collection, extraSettings = []}) {
+function FormCollectionModal({open, setOpen, onClose, record, app, list, form, collection, extraSettings = [], relationships = {}}) {
 
-    const {post, put, setData, data, reset, errors, isDirty} = useForm(  ...getInitialValues() );
+    const [defaults] = useState(getDefaultValues());
+
+    const {post, put, setData, data, reset, errors, isDirty} = useForm( getInitialValues() );
 
     function getInitialValues() {
-        return record?.id
-            ? [record]
-            : [getDefaultValues()];
+        return _.cloneDeep(record?.id
+            ? {...record}
+            : getDefaultValues());
     }
 
-    function getDefaultValues() {
-        return {...collect(form.columns).mapWithKeys((column) => {
+    function getDefaultValues(_collection = null) {
+        const collection = _collection ?? form;
+        return {...collect(collection.columns).mapWithKeys((column) => {
             return [column.name, extraSettings?.[column.id]?.defaultValue ??  column?.default ?? ''];
-        }).all(), ...(typeof record === 'object' ? record : {})};
+        }).prepend({},'__extra_sections__').all(), ...(typeof record === 'object' ? record : {})};
     }
 
     function getData(key) {
@@ -54,11 +59,33 @@ function FormCollectionModal({open, setOpen, onClose, record, app, list, form, c
         }
     }
 
+    function addExtraSection(section, index, collectionExtra) {
+        const extraSections = getData('__extra_sections__');
+
+        const newItem = {...getDefaultValues(collectionExtra), id: uuid(),};
+
+        if(section.collection === section.column.name){
+            newItem[section.column.name] = data?.id ?? '{{PRIMARY_RECORD_ID}}';
+        }
+        const newExtraSections = {...extraSections, [index]: [
+                ...(extraSections[index] ?? []),
+                newItem
+            ]};
+
+        setData('__extra_sections__', newExtraSections);
+    }
+
+    function removeExtraSection(index, indexSection) {
+        const extraSections = getData('__extra_sections__');
+        const newExtraSections = {...extraSections, [index]: extraSections[index].filter((item, i) => i !== indexSection)};
+        setData('__extra_sections__', newExtraSections);
+    }
+
     return (
         <EmptyModal
             open={open}
             setOpen={setOpen}
-            // onClose={() => typeof onClose === 'function' && onClose()}
+            //onClose={() => typeof onClose === 'function' && onClose()}
         >
             <div className="w-full">
                 <div className="py-3 px-4 border-b">
@@ -83,12 +110,62 @@ function FormCollectionModal({open, setOpen, onClose, record, app, list, form, c
                                 </div>
                             ))}
 
+                            {(relationships?.config ?? []).map((section, index) => {
+                                const collectionExtra = collect(relationships?.objects ?? []).first((v) => v.id === section.collection);
+
+                                if(!collectionExtra) {
+                                    return null;
+                                }
+
+                                return (
+                                    <div key={index} className="pt-4">
+                                        <h3 className="text-lg font-bold text-gray-600">{collectionExtra.settings.plural_label ?? 'Items'}</h3>
+                                        {data?.__extra_sections__?.[index]?.map((item, indexRepeater) => (
+                                            <div key={item.id} className="mb-4 p-4 border rounded-lg relative">
+                                                <span className="absolute top-0 right-0">
+                                                    <Button
+                                                        as="span"
+                                                        icon="trash"
+                                                        color="danger"
+                                                        negative
+                                                        iconType="outline"
+                                                        size="sm"
+                                                        action={() => removeExtraSection(index, indexRepeater)}
+                                                    />
+                                                </span>
+                                                {collectionExtra.columns.filter(v => !extraSettings?.[v.id]?.hidden).map((column, indexField) => {
+                                                    if(section.column.collection === section.collection && section.column.name === column.name) {
+                                                        return null;
+                                                    }
+                                                    return (
+                                                        <div key={indexField} className="mb-4 last:mb-0">
+                                                            <ComposerField
+                                                                fieldSettings={column}
+                                                                value={getData(`__extra_sections__.${index}.${indexRepeater}.${column.name}`)}
+                                                                handleChange={(e) => {
+                                                                    setData('__extra_sections__', set(getData('__extra_sections__'), `${index}.${indexRepeater}.${column.name}`, e?.target?.value ?? e.value ?? e))
+                                                                }}
+                                                                errors={errors[column.name]}
+                                                                form={collectionExtra}
+                                                                app={app}
+                                                                record={record}
+                                                            />
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        ))}
+                                        <Button as="span" size="sm" action={() => addExtraSection(section, index, collectionExtra)}>Add {collectionExtra.settings?.singular_label ?? 'Item'}</Button>
+                                    </div>
+                                )
+                            })}
+
                             <div className="flex justify-end">
                                 <Button
                                     onClick={handleSubmit}
-                                    disabled={!isDirty}
+                                    disabled={isEqual(defaults, data)}
                                 >
-                                    Save
+                                    {data.id ? 'Update' : 'Create'}
                                 </Button>
                             </div>
                         </form>

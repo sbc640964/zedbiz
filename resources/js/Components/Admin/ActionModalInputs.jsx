@@ -10,6 +10,8 @@ import Label from "@/Components/Form/Label";
 import Textarea from "@/Components/Form/Textarea";
 import Button from "@/Components/Button";
 import Input from "@/Components/Form/Input";
+import {collect} from "collect.js";
+import {getSectionsFormOptions} from "@/helpers";
 
 function ActionModalInputs({open, setOpen, action, setData, collection, collections, errors, exclude = []}) {
 
@@ -147,6 +149,18 @@ function ActionModalInputs({open, setOpen, action, setData, collection, collecti
                                 placeholder="Default form"
                                 options={getForms()}
                                 noOptionsMessage={() => "No forms available"}
+                            />
+                        </FieldRow>
+
+                        <FieldRow label="Relationship" description="" show={action.type === 'form'}>
+                            <Select
+                                className="w-full text-sm"
+                                value={action?.relationshipForms}
+                                handleChange={e => setData('relationshipForms', e?.value ?? e)}
+                                placeholder="Select relationship forms"
+                                options={getSectionsFormOptions(collections, collections.find(c => c.id === action.form))}
+                                isMulti
+                                noOptionsMessage={() => "No lists available"}
                             />
                         </FieldRow>
 

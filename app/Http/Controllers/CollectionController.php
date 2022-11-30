@@ -38,10 +38,17 @@ class CollectionController extends Controller
 
     public function edit(Tenant $app, $collection)
     {
-        $collection = $app->run(fn() => Collection::findOrFail($collection)->toArray());
+        $collections = $app->run(fn() => Collection::all()->toArray());
+
+        $collection = \Arr::first($collections, fn($item) => $item['id'] === (int)$collection);
+
+        if(!$collection) {
+            abort(404);
+        }
 
         return Inertia::render('Admin/Apps/Collection', [
             'collection' => $collection,
+            'collections' => $collections,
             'app' => $app->load('domains'),
         ]);
     }
@@ -89,6 +96,7 @@ class CollectionController extends Controller
             'settings.menu_badge' => ['nullable', 'string', 'max:255'],
             'settings.default_list' => ['nullable', 'string', 'max:255'],
             'settings.default_form' => ['nullable', 'string', 'max:255'],
+            'settings.menu.new_form_sections' => ['nullable', 'array'],
             'settings.default_single' => ['nullable', 'string', 'max:255'],
             'settings.default_dashboard' => ['nullable', 'string', 'max:255'],
             'settings.primary_column' => ['nullable', 'string', 'max:255'],

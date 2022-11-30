@@ -139,9 +139,11 @@ function List({ collection, app, list, collections, records:originalRecords, wid
             actions={[
                 (list.settings?.enable_import || list.settings?.enable_export) &&
                     <DropdownCollectionActions enableExport={list.settings?.enable_export} enableImport={list.settings?.enable_import} setOpenImportModal={setOpenImportModal} />,
-                list.settings?.enable_add_new ? <Button
-                    action={newItem}
-                >{list.settings?.add_new_label ?? ('Add ' + (collection.settings?.singular_label ?? 'new') )}</Button> : null,
+                list.settings?.enable_add_new
+                    ? <Button action={newItem}>
+                            {list.settings?.add_new_label ?? ('Add ' + (collection.settings?.singular_label ?? 'new') )}
+                      </Button>
+                    : null,
                 isAdminScreen ? <Button outline negative icon="cog-8-tooth" action={() => setOpenModal(true)}/> : null
             ]}
         >
@@ -288,6 +290,10 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                 list={list}
                 app={app}
                 form={collection}
+                relationships={{
+                    config: list.settings?.add_new_relationship_forms,
+                    objects: list.settings?.add_new_relationship_forms_objects,
+                }}
             />
 
             {confirm && <Confirm

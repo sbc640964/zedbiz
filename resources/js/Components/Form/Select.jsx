@@ -5,7 +5,7 @@ import AsyncSelectCreatable from "react-select/async-creatable";
 import {components} from "react-select";
 import Icon from "@/Components/Icon";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {debounce} from "lodash";
+import {debounce, isEqual} from "lodash";
 import collect, {Collection} from "collect.js";
 import {addToast} from "@/helpers";
 
@@ -25,8 +25,24 @@ function Select({size, color, isAsync, handleChange, isCreatable, value, ...prop
     const componentsObject = useRef(customComponents(`${colorClasses} ${props?.className ?? ''}`, size))
 
     useEffect(() => {
-        setOptions(props?.options ?? []);
+        setOptions(mapOptions(props?.options ?? []));
     }, [props?.options]);
+
+    function mapOptions(options) {
+        return collect(options).map(option => {
+            if(option?.options) {
+                return {
+                    ...option,
+                    options: mapOptions(option.options)
+                }
+            }
+            return {
+                ...option,
+                value: option.value,
+                label: option.label ?? option.value,
+            }
+        }).toArray();
+    }
 
     const Component = isAsync ? (isCreatable ? AsyncSelectCreatable : AsyncSelect) : (isCreatable ? ReactSelectCreatable : ReactSelect);
 
@@ -70,14 +86,19 @@ function Select({size, color, isAsync, handleChange, isCreatable, value, ...prop
         const _options = (options instanceof Collection ? options : collect(options))
             .pluck('options')
             .flatten(1)
-            .merge(options?.all?.() || options)
+            .merge((options instanceof Collection ? options : collect(options)).filter(o => !o.options).all())
             .filter(i => Boolean(i))
             .all();
 
         const _value = props.isMulti && Array.isArray(value) ? value.map(i => i?.value ?? i) : (value?.value || value);
-        const current = props?.isMulti
-            ? collect(_options).filter(option => _value.includes(option?.value)).all()
-            : collect(_options).first((option) => option?.value === _value);
+
+        let current = !props?.isMulti ? collect(_options).first((option) => option?.value === _value) : null;
+
+        if(props?.isMulti) {
+            current = _value.map(v => collect(_options).first((option) => {
+                return typeof v === 'object' ? isEqual(v, option?.value) : option?.value === v;
+            }));
+        }
 
         return current ?? (typeof currentValue !== "undefined" ? currentValue : null);
     }
@@ -267,7 +288,7 @@ const customComponents = (controlClasses, size) =>  ({
             'xs': '!text-xs',
         }[size] ?? '!text-base';
 
-        return(<components.Placeholder {...props} className={`${classes} !text-gray-500`}>{props.children}</components.Placeholder>)
+        return(<components.Placeholder {...props} className={`${classes} !text-gray-300`}>{props.children}</components.Placeholder>)
     },
     // SelectContainer: (props) => {
     //     return(<components.SelectContainer {...props}>{props.children}</components.SelectContainer>)

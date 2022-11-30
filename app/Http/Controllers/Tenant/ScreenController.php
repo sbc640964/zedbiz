@@ -12,6 +12,15 @@ class ScreenController extends Controller
     {
         $list = $list->id ? $list : $collection->getDefaultList();
 
+        if($list->settings['enable_add_new'] && empty($list->settings['add_new_form']) && !empty($list->settings['add_new_relationship_forms'])) {
+
+            $collectionsRelationship = Collection::findMany(
+                collect($list->settings['add_new_relationship_forms'])->pluck('collection')->flatten()->toArray()
+            );
+
+            $list->settings = array_merge($list->settings, ['add_new_relationship_forms_objects' => $collectionsRelationship]);
+        }
+
         return inertia('Tenant/List', [
             'collection' => $collection,
             'records' => (new ListsController())->getList($list),

@@ -87,8 +87,9 @@ export default function Button({ type, disabled, className = '', processing, chi
             type={type}
             onDoubleClick={(e) => handleClick('double', e)}
             onClick={(e) => handleClick('single', e)}
+            role={props?.role ?? 'button'}
             className={
-                `inline-flex space-x-1 rtl:space-x-reverse items-center ${props?.noupper ? '' : 'uppercase'} rounded-md font-semibold tracking-widest transition ease-in-out duration-150 ${
+                `cursor-pointer inline-flex space-x-1 rtl:space-x-reverse items-center ${props?.noupper ? '' : 'uppercase'} rounded-md font-semibold tracking-widest transition ease-in-out duration-150 ${
                     processing && 'opacity-25'
                 } ${
                     disabled && 'opacity-50'

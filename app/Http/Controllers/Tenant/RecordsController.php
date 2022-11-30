@@ -63,9 +63,38 @@ class RecordsController extends Controller
 
     public function store($form, Request $request)
     {
+
+        [$collectionForm, $form, $list, $action] = $this->getModels($form, $request);
+
+        if(!$form){
+            abort(404, 'Form not found');
+        }
+
+        $attributes = $this->validateForm($form, $request);
+        $attributes['user_created_id'] = auth()->id();
+
+        \DB::transaction(function () use ($request, $attributes, $collectionForm) {
+            $id = $collectionForm->model()->create($attributes);
+
+            if(collect(\Arr::dot($request->get('__extra_sections__', [])))->count() > 0){
+                $collectionForm->settings = array_merge($collectionForm->settings, [
+                    'menu' => [
+                        'new_form_sections' => $action['relationshipForms'] ?? [],
+                    ]
+                ]);
+                $this->saveExtraSections($collectionForm, $id, $request->get('__extra_sections__'));
+            }
+        });
+    }
+
+    public function getModels($form, Request $request)
+    {
         $referenceAction = $request->get('__reference_action_id');
         $referenceRecord = $request->get('__reference_record_id');
         $referenceList = $request->get('__reference_list_id');
+
+        $list = null;
+        $action = null;
 
         if($referenceAction && $referenceList){
             $list = ListCollection::findOrFail($referenceList);
@@ -76,34 +105,102 @@ class RecordsController extends Controller
             $form = $collectionForm;
         }
 
-        if(!$form){
-            abort(404, 'Form not found');
+        return [
+            $collectionForm,
+            $form,
+            $list,
+            $action
+        ];
+    }
+
+    public function saveExtraSections($form, $parentRecord, $sections)
+    {
+        $sectionsExtra = collect($form->settings['menu']['new_form_sections'] ?? []);
+
+        if(!$sectionsExtra->count()){
+            return;
         }
 
-        $attributes = $this->validateForm($form, $request);
-        $attributes['user_created_id'] = auth()->id();
-        $form->model()->create($attributes);
+        $collections = Collection::whereIn('id', $sectionsExtra->pluck('collection')->flatten()->toArray())->get();
+
+        foreach($sections as $section => $items){
+            $sectionExtra = $sectionsExtra->get($section);
+
+            $collection = $collections->first(fn($collection) => $collection->id === $sectionExtra['collection']);
+
+            $deleteItems = collect(\request('__relation'.$section))
+                ->pluck('id')
+                ->filter()
+                ->diff(collect($items)->pluck('id')->filter());
+            
+            if($deleteItems->count()){
+                $collection->model()->whereIn('id', $deleteItems->toArray())->delete();
+            }
+
+            foreach ($items as $value) {
+                if($collection->id === $sectionExtra['column']['collection']){
+                    $value[$sectionExtra['column']['name']] = $parentRecord->id;
+                }
+                $attributes = $this->validateForm($collection, new Request($value), false);
+                if(is_int($value['id'])){
+                    $attributes['user_last_modified_id'] = auth()->id();
+                    $collection->model()->find($value['id'])->update($attributes);
+                } else {
+                    $attributes['user_created_id'] = auth()->id();
+                    $collection->model()->create($attributes);
+                }
+            }
+        }
     }
 
     public function update($form, $record, Request $request)
     {
-        $form = Collection::findOrFail($form);
-        $record = $form->records()->findOrFail($record);
+        [$collectionForm, $form, $list] = $this->getModels($form, $request);
 
         $attributes = $this->validateForm($form, $request);
+
         $attributes['user_last_modified_id'] = auth()->id();
-        $record->update($attributes);
+
+        \DB::transaction(function () use ($request, $attributes, $form, $record) {
+            $record = $form->records()->findOrFail($record);
+
+            $record->update($attributes);
+
+            if(collect(\Arr::dot($request->get('__extra_sections__', [])))->count() > 0){
+                $this->saveExtraSections($form, $record, $request->get('__extra_sections__'));
+            }
+        });
+
+
 
         return back();
     }
 
-    public function validateForm($form, $request)
+    public function validateForm($form, $request, $extra = true)
     {
+        $sectionsExtra = $form->settings['menu']['new_form_sections'] ?? [];
+
         $columns = collect($form->columns);
 
         $rules = $columns->mapWithKeys(fn($column) => [
             $column['name'] => $this->columnRules($column, $form)
         ])->toArray();
+
+        if(!empty($sectionsExtra)){
+            $collections = Collection::findMany(collect($sectionsExtra)
+                ->pluck('collection')
+                ->flatten()
+                ->toArray());
+
+            foreach($sectionsExtra as $index => $section){
+                $collection = $collections->find($section['collection']);
+                $rules['__extra_sections__.' . $index] = 'nullable|array';
+                $rules = array_merge($rules, collect($collection->columns)->mapWithKeys(fn($column) => [
+                    '__extra_sections__.'.$index . '.*.' . $column['name'] =>
+                        $section['collection'] === $section['column']['collection'] && $section['column']['name'] === $column['name'] ? Rule::in(['{{PARENT_RECORD_ID}}', '', $request->get('id')]) : $this->columnRules($column, $collection)
+                ])->toArray());
+            }
+        }
 
         return $request->validate($rules);
     }
@@ -133,7 +230,7 @@ class RecordsController extends Controller
         }
 
         if($type === 'select') {
-            $rules[] = Rule::in($column['options']);
+            $rules[] = Rule::in(collect($column['options'])->pluck('value')->toArray());
         }
 
         if($type === 'time') {
@@ -148,7 +245,7 @@ class RecordsController extends Controller
             $rules[] = 'boolean';
         }
 
-        if($type === 'checkbox' || ($type === 'select' && $column['multiple'])) {
+        if($type === 'checkbox' || ($type === 'select' && ($column['multiple'] ?? false) )) {
             $rules[] = 'array';
         }
 

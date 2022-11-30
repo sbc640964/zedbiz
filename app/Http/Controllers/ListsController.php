@@ -159,6 +159,7 @@ class ListsController extends Controller
             'settings.enable_add_new' => ['nullable', 'boolean'],
             'settings.add_new_label' => ['nullable', 'string'],
             'settings.add_new_form' => ['nullable', 'int', 'exists:_forms_,id'],
+            'settings.add_new_relationship_forms' => ['nullable', 'array'],
             'settings.add_new_view_method' => ['nullable', 'string', 'in:modal,page'],
             'settings.enable_import' => ['nullable', 'boolean'],
             'settings.enable_export' => ['nullable', 'boolean'],

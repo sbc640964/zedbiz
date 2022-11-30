@@ -18,10 +18,11 @@ import Button from "@/Components/Button";
 import {Inertia} from "@inertiajs/inertia";
 import Alert from "@/Components/Alert";
 import {InertiaLink} from "@inertiajs/inertia-react";
+import {collect} from "collect.js";
 
 function Collection(props) {
 
-    const {collection, app, errors} = props;
+    const {collection, app, errors, collections} = props;
     const [errorsBag, setErrorsBag] = useState(errors ?? {});
     const [openImportModal, setOpenImportModal] = useState(false);
 
@@ -53,6 +54,54 @@ function Collection(props) {
             app: app.id,
             collection: collection.id
         }));
+    }
+
+    function getSectionsFormOptions() {
+        const options = [];
+
+        collect(collections).each(c => {
+            if(c.id !== collection.id) {
+                const columnsRelations = collect(c.columns).filter(c => c.type === 'relation' && c.relationTable === collection.id);
+                if(columnsRelations.count() > 0) {
+                    columnsRelations.each(cr => {
+                        options.push({
+                            label: `${c.name} (${cr.unique ? 'Unique' : 'Multiple'})`,
+                            subtext: `Column foreign key: ${cr.name}`,
+                            value: {
+                                collection: c.id,
+                                column: {
+                                    collection: c.id,
+                                    id: cr.id,
+                                    name: cr.name
+                                }
+                            },
+                        });
+                    });
+                }
+            }
+        });
+
+        const columnsRelations = collect(collection.columns).filter(c => c.type === 'relation');
+
+        if(columnsRelations.count() > 0) {
+            columnsRelations.each(cr => {
+                const collectionRelation = collect(collections).first(c => c.id === cr.relationTable);
+                options.push({
+                    label: `${collectionRelation.name} (Unique)`,
+                    subtext: `Column foreign key: ${cr.name}`,
+                    value: {
+                        collection: collectionRelation.id,
+                        column: {
+                            id: cr.id,
+                            name: cr.name,
+                            collection: collection.id
+                        }
+                    }
+                });
+            });
+        }
+
+        return options;
     }
 
     return (
@@ -102,8 +151,7 @@ function Collection(props) {
                             <RealFieldRow {...fieldRowProps("settings.menu.is_simple", true)}>
                                 <Switcher/>
                             </RealFieldRow>
-                            <RealFieldRow {...fieldRowProps("settings.menu.list")}
-                                          show={collection.settings?.menu?.is_simple}>
+                            <RealFieldRow {...fieldRowProps("settings.menu.list")} show={collection.settings?.menu?.is_simple}>
                                 <Select
                                     isAsync
                                     defaultOptions
@@ -111,20 +159,31 @@ function Collection(props) {
                                         app: app.id,
                                         collection: collection.id
                                     })}
+                                    placeholder="Default list"
                                 />
                             </RealFieldRow>
                             <RealFieldRow {...fieldRowProps("settings.menu.new_form")}
                                           show={collection.settings?.menu?.is_simple}>
                                 <Select
                                     isAsync
+                                    placeholder="Default form"
                                 />
                             </RealFieldRow>
+                            <RealFieldRow {...fieldRowProps("settings.menu.new_form_sections")}
+                                            show={collection.settings?.menu?.is_simple}>
+                                <Select
+                                    isMulti
+                                    placeholder="Choose sections"
+                                    options={getSectionsFormOptions()}
+                                />
+                            </RealFieldRow>
+
                             <RealFieldRow {...fieldRowProps("settings.menu.form_mode")}
                                           show={collection.settings?.menu?.is_simple}>
                                 <Select options={[
                                     {value: 'redirect', label: 'Redirect'},
                                     {value: 'modal', label: 'Modal'},
-                                ]}/>
+                                ]} placeholder="Modal"/>
                             </RealFieldRow>
                             {!collection.settings.menu?.is_simple &&
                                 <MenuCollection collection={collection} app={app}/>

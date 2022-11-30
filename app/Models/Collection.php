@@ -6,7 +6,6 @@ use App\Services\Column;
 use App\Services\Migrate;
 use App\Services\ModelCreate;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder;
@@ -26,6 +25,7 @@ class Collection extends Model
         'has_table',
         'has_model',
         'table_name',
+        'class_name',
     ];
 
     protected $fillable = [
@@ -74,7 +74,7 @@ class Collection extends Model
      * @return Model
      * @throws \Exception If model not found
      */
-    public function model(...$args): Model
+    public function model(...$args)
     {
         if(!$this->has_model) {
             throw new \Exception('Collection has no model');
@@ -83,6 +83,11 @@ class Collection extends Model
         $model = app($this->modelNamespace() . $this->model_name);
 
         return empty($args) ? $model : $model->newInstance(...$args);
+    }
+
+    public function forms(): HasMany
+    {
+        return $this->hasMany(Form::class);
     }
 
     /** END RELATIONSHIP`S **/
@@ -246,10 +251,21 @@ class Collection extends Model
             'enable_add_new' => true,
             'query_group_by_id' => true,
             'enable_import' => true,
+            'extra_sections' => $this->getExtraSectionsForm(),
         ];
+
         $list->name = $this->name;
 
         return $list;
+    }
+
+    private function getExtraSectionsForm() : ?\Illuminate\Database\Eloquent\Collection
+    {
+        if(empty($this->settings['menu']['new_form_sections'])) {
+            return null;
+        }
+
+        return Collection::findMany(collect($this->settings['menu']['new_form_sections'])->pluck('collection')->flatten()->toArray());
     }
 
     private function getRawQueryDefaultList(): string

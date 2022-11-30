@@ -54,7 +54,7 @@ class Parser
     public function select($expr): void
     {
         foreach ($expr as $item) {
-            if($item->subquery) {
+            if($item->subquery && !\Str::startsWith($item->expr, '((')) {
                 $this->parseSubQuery($item, 'select');
             } else {
                 match ($item->function) {
