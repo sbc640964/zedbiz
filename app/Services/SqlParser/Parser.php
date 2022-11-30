@@ -33,8 +33,7 @@ class Parser
     public function parse()
     {
         $parser = new BaseParser($this->sql);
-
-//        $flags = Query::getFlags($parser->statements[0]);
+        //        $flags = Query::getFlags($parser->statements[0]);
         $this->select($parser->statements[0]->expr);
         $this->from($parser->statements[0]->from);
         $this->join($parser->statements[0]->join);

@@ -77,9 +77,9 @@ class RecordsController extends Controller
 
             $relationshipConfig = $collectionForm->settings['menu']['new_form_sections'] ?? null;
 
-            if($action && $action['relationshipForms']) {
+            if($action && ($action['relationshipForms'] ?? false)) {
                 $relationshipConfig = $action['relationshipForms'];
-            }elseif($list && $list->settings['add_new_relationship_forms']) {
+            }elseif($list && ($list->settings['add_new_relationship_forms'] ?? false)) {
                 $relationshipConfig = $list->settings['add_new_relationship_forms'];
             }
 
