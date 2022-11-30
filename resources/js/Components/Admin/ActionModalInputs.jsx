@@ -152,15 +152,15 @@ function ActionModalInputs({open, setOpen, action, setData, collection, collecti
                             />
                         </FieldRow>
 
-                        <FieldRow label="Relationship" description="" show={action.type === 'form'}>
+                        <FieldRow label="Relationship" description="" show={action.type === 'form' && action.form}>
                             <Select
                                 className="w-full text-sm"
                                 value={action?.relationshipForms}
                                 handleChange={e => setData('relationshipForms', e?.value ?? e)}
                                 placeholder="Select relationship forms"
-                                options={getSectionsFormOptions(collections, collections.find(c => c.id === action.form))}
+                                options={getSectionsFormOptions(collections, collect(collections).first(c => c.id === action.form) ?? collection)}
                                 isMulti
-                                noOptionsMessage={() => "No lists available"}
+                                noOptionsMessage={() => "No Relationships available"}
                             />
                         </FieldRow>
 

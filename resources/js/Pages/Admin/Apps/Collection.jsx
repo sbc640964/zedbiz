@@ -19,6 +19,7 @@ import {Inertia} from "@inertiajs/inertia";
 import Alert from "@/Components/Alert";
 import {InertiaLink} from "@inertiajs/inertia-react";
 import {collect} from "collect.js";
+import {getSectionsFormOptions} from "@/helpers";
 
 function Collection(props) {
 
@@ -54,54 +55,6 @@ function Collection(props) {
             app: app.id,
             collection: collection.id
         }));
-    }
-
-    function getSectionsFormOptions() {
-        const options = [];
-
-        collect(collections).each(c => {
-            if(c.id !== collection.id) {
-                const columnsRelations = collect(c.columns).filter(c => c.type === 'relation' && c.relationTable === collection.id);
-                if(columnsRelations.count() > 0) {
-                    columnsRelations.each(cr => {
-                        options.push({
-                            label: `${c.name} (${cr.unique ? 'Unique' : 'Multiple'})`,
-                            subtext: `Column foreign key: ${cr.name}`,
-                            value: {
-                                collection: c.id,
-                                column: {
-                                    collection: c.id,
-                                    id: cr.id,
-                                    name: cr.name
-                                }
-                            },
-                        });
-                    });
-                }
-            }
-        });
-
-        const columnsRelations = collect(collection.columns).filter(c => c.type === 'relation');
-
-        if(columnsRelations.count() > 0) {
-            columnsRelations.each(cr => {
-                const collectionRelation = collect(collections).first(c => c.id === cr.relationTable);
-                options.push({
-                    label: `${collectionRelation.name} (Unique)`,
-                    subtext: `Column foreign key: ${cr.name}`,
-                    value: {
-                        collection: collectionRelation.id,
-                        column: {
-                            id: cr.id,
-                            name: cr.name,
-                            collection: collection.id
-                        }
-                    }
-                });
-            });
-        }
-
-        return options;
     }
 
     return (
@@ -174,7 +127,7 @@ function Collection(props) {
                                 <Select
                                     isMulti
                                     placeholder="Choose sections"
-                                    options={getSectionsFormOptions()}
+                                    options={collection?.id ? getSectionsFormOptions(collections, collection) : []}
                                 />
                             </RealFieldRow>
 
