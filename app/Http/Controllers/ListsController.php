@@ -28,7 +28,7 @@ class ListsController extends Controller
     public function create(Tenant $app, $collection)
     {
         $collection = $app->run(fn() => Collection::findOrFail($collection)->toArray());
-        $collections = $app->run(fn() => Collection::all('name', 'table_name', 'slug', 'columns')
+        $collections = $app->run(fn() => Collection::all('name', 'table_name', 'slug', 'columns', 'id')
             ->append('table_name')
             ->toArray()
         );
