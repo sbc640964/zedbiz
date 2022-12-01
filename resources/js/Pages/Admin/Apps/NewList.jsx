@@ -20,17 +20,48 @@ import ListSortableSection from "@/Components/Admin/ListSortableSection";
 import {Inertia} from "@inertiajs/inertia";
 import SqlEditor from "@/Components/Form/SqlEditor";
 import {Parser} from "lite-ui-sql-parser";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import ActionFormInputs from "@/Components/Admin/ActionFormInputs";
 import ColumnFormInputs from "@/Components/Admin/ColumnFormInputs";
 import {collect} from "collect.js";
 import WidgetListFormInput from "@/Components/Admin/WidgetListFormInput";
 import {getSectionsFormOptions} from "@/helpers";
+import Tree from "@/Components/Tree";
 
 
 function NewList({collection, app, collections, list, onUpdate}) {
 
     const [sqlError, setSqlError] = useState(null);
+
+    const queryTablesColumns = useRef(collections.map(c => ({
+        id: c.table_name,
+        label: c.name,
+        children: collect(c.columns).map(col => ({
+                id: `${c.table_name}.${col.name}`,
+                label: col.label ?? col.name,
+                type: col.type,
+                table: c.table_name,
+            }))
+            .prepend({
+                id: `${c.table_name}.id`,
+                label: 'ID',
+                type: 'integer',
+                table: c.table_name,
+            })
+            .merge(
+                collect({
+                    created_at: 'Created at',
+                    updated_at: 'Updated at'
+                })
+                .map((value, key) => ({
+                    id: `${c.table_name}.${key}`,
+                    label: value,
+                    table: c.table_name,
+                }))
+                .values()
+                .all()
+            ).all()
+    })));
 
     const {data, errors, setData: setDataForm, post, put, reset} = useForm( cloneDeep(list) ?? {
         name: '',
@@ -79,6 +110,8 @@ function NewList({collection, app, collections, list, onUpdate}) {
             ],
         }
     });
+
+    const sqlEditorRef = useRef(null);
 
     function setData(key, value) {
         if (key.indexOf('.') > -1) {
@@ -288,8 +321,29 @@ function NewList({collection, app, collections, list, onUpdate}) {
                                     <SqlEditor
                                         value={data.settings.raw_query}
                                         handleChange={e => setData('settings.raw_query', e)}
+                                        ref={sqlEditorRef}
                                     />
                                     <InputError message={errors?.['settings.raw_query']}/>
+                                </div>
+                                <div className="w-1/6 p-4 max-h-[500px] overflow-y-auto scrollbar">
+                                    <Tree
+                                        items={queryTablesColumns.current}
+                                        onClick={item => {
+                                            if (item.id) {
+                                                const cursorPosition = sqlEditorRef.current.editor.selection.getCursor();
+                                                sqlEditorRef.current.editor.session.insert(cursorPosition, item.id);
+                                                sqlEditorRef.current.editor.focus();
+                                            }
+                                        }}
+                                    >
+                                        {(item, isOpened) => (
+                                            <div className="flex items-center hover:bg-gray-100 cursor-pointer w-full rounded-lg">
+                                                <span className={`${isOpened ? 'bold py-0.5' : 'text-sm text-gray-600 py-1'} px-2`}>
+                                                    {item.label}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </Tree>
                                 </div>
                             </div>
                             {sqlError &&
