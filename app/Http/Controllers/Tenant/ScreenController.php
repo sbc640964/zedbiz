@@ -21,6 +21,8 @@ class ScreenController extends Controller
             $list->settings = array_merge($list->settings, ['add_new_relationship_forms_objects' => $collectionsRelationship]);
         }
 
+
+
         return inertia('Tenant/List', [
             'collection' => $collection,
             'records' => (new ListsController())->getList($list),

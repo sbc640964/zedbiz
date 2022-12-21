@@ -8,24 +8,25 @@ import {
     useDismiss,
     flip,
     shift,
+    autoPlacement
 } from "@floating-ui/react-dom-interactions";
 import {cloneElement, useState} from "react";
 import {Transition} from "@headlessui/react";
 
-function Tooltip({content, className = '', placement = 'top', children}) {
+function Tooltip({content, className = '', placement = 'top', children, ...props}) {
 
     const [open, setOpen] = useState(false);
 
     const {context, x, y, reference, floating, strategy} = useFloating({
         open: open,
         onOpenChange: setOpen,
-        placement: placement,
         middleware: [offset(5), flip(), shift({ padding: 8 })],
-        whileElementsMounted: autoUpdate
+        whileElementsMounted: autoUpdate,
+        // strategy: 'fixed'
     });
 
     const {getReferenceProps, getFloatingProps, getItemProps} = useInteractions([
-        useHover(context),
+        useHover(context, {restMs: props.delay ?? 100}),
         useRole(context, { role: "tooltip" }),
         useDismiss(context)
     ]);

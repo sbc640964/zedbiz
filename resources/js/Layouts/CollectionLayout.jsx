@@ -37,9 +37,9 @@ function CollectionLayout({ children }) {
                 />
                 <Tab
                     show={collection.has_table}
-                    label="Dashboards"
-                    href={routeTab('dashboards')}
-                    active={route().current('admin.apps.edit.collections.dashboards')}
+                    label="Pages"
+                    href={routeTab('pages')}
+                    active={route().current('admin.apps.edit.collections.pages')}
                 />
                 <Tab
                     label="Permissions"

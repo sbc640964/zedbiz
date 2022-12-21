@@ -21,7 +21,7 @@ import LoaderSpinner from "@/Components/LoaderSpinner";
  */
 export default function Button({ type, disabled, className = '', processing, children, action, size, color, icon, iconType, negative, ...props }) {
 
-    const iconButton = icon && !children;
+    const iconButton = icon && (!children && props?.label === undefined);
 
     const colorClass = ({
         'primary': `bg-primary-500 hover:bg-primary-700 active:bg-primary-900 text-white`,
@@ -79,6 +79,11 @@ export default function Button({ type, disabled, className = '', processing, chi
             return;
         }
         typeof action === 'function' && action(e);
+
+        if(typeof action !== 'function' && typeof props?.onClick === 'function'){
+            props.onClick(e);
+        }
+
     }
 
     const Component = props?.as ?? ( 'button' );
@@ -89,7 +94,7 @@ export default function Button({ type, disabled, className = '', processing, chi
             onClick={(e) => handleClick('single', e)}
             role={props?.role ?? 'button'}
             className={
-                `cursor-pointer inline-flex space-x-1 rtl:space-x-reverse items-center ${props?.noupper ? '' : 'uppercase'} rounded-md font-semibold tracking-widest transition ease-in-out duration-150 ${
+                `cursor-pointer inline-flex space-x-1 items-center ${props?.noupper ? '' : 'uppercase'} rounded-md font-semibold tracking-widest transition ease-in-out duration-150 ${
                     processing && 'opacity-25'
                 } ${
                     disabled && 'opacity-50'
@@ -102,7 +107,7 @@ export default function Button({ type, disabled, className = '', processing, chi
             : (
                 <>
                     {icon && props?.startIcon && <Icon type={iconType} name={icon} className={iconSizeClass}/>}
-                    {children && <span>{children}</span>}
+                    {(children || props?.label) && <span>{children ?? props?.label ?? ''}</span>}
                     {icon && !props?.startIcon &&
                         <span><Icon type={iconType ?? 'mini'} name={icon} className={iconSizeClass}/></span>}
                 </>

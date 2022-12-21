@@ -2,7 +2,9 @@ import Column from "@/Components/Table/Column";
 import classNames from "classnames";
 import HeadColumn from "@/Components/Table/HeadColumn";
 import ActionRow from "@/Components/Admin/ActionRow";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
+import moment from "moment";
+import Tooltip from "@/Components/Dialogs/Tooltip";
 
 function ColumnWithSettings({head, column, list, record, app, collection, actionProps, ...props}) {
 
@@ -21,6 +23,8 @@ function ColumnWithSettings({head, column, list, record, app, collection, action
     //todo: remove effect on mount - first render
     const [mounted, setMounted] = useState(false);
     const [highlighted, setHighlighted] = useState(false);
+    const [isOver, setIsOver] = useState(false);
+    const refContainer = useRef(null);
 
     useEffect(() => {
         if (mounted) {
@@ -74,15 +78,46 @@ function ColumnWithSettings({head, column, list, record, app, collection, action
     }
 
     const TextComponent = actions?.click?.enabled ? ActionRow : 'span';
+
+    function getValue() {
+        const type = column.type ?? 'text';
+
+        let value = props.formats?.[name] ?? record?.[name];
+
+        switch (type) {
+            case 'datetime':
+                if(column.for_human){
+                    value = <Tooltip
+                        content={moment(record?.[name]).format(column.format_date ?? 'DD/MM/YYYY HH:mm:ss')}
+                        delay={500}
+                    >
+                        <span className="select-none">{moment(record?.[name]).fromNow()}</span>
+                    </Tooltip>
+                }
+        }
+        return value;
+    }
+
+
+
+    useEffect(() => {
+        const setTooltip = ()  => setIsOver(refContainer.current?.offsetWidth < refContainer.current?.scrollWidth)
+        window.addEventListener('resize', setTooltip);
+        setTooltip();
+
+        return () => window.removeEventListener('resize', setTooltip);
+    }, []);
+
     return (
         <Column
             width={width ? width : null}
             className={`${classes} transition-all`}
             isJustifyBetween={iconActions?.justify_between}
+            tooltip={refContainer.current?.offsetWidth < refContainer.current?.scrollWidth}
         >
             <span className={`flex items-center ${iconActions?.justify_between ? 'justify-between' : ''} space-x-2 rtl:space-x-reverse`}>
-                <TextComponent className="text-ellipsis overflow-hidden max-w-full" {...(actions?.click?.enabled ? {...actionProps, action: actions.click, type: 'text'} : {})}>
-                    {record[name]}
+                <TextComponent ref={refContainer} className="text-ellipsis overflow-hidden max-w-full" {...(actions?.click?.enabled ? {...actionProps, action: actions.click, type: 'text'} : {})}>
+                    {getValue()}
                 </TextComponent>
                 {iconActions?.enabled && !head && iconActions?.click?.enabled &&
                     <ActionRow

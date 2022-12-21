@@ -1,14 +1,18 @@
 <?php
 
 use App\Http\Controllers\ActionsController;
+use App\Http\Controllers\AppSettingsController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ColumnsController;
+use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ListsController;
 use App\Http\Controllers\MenusController;
 use App\Http\Controllers\OptionsController;
 use App\Http\Controllers\RecordsController;
+use App\Http\Controllers\SessionStoreController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\WidgetsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -63,7 +67,9 @@ Route::middleware(['auth', 'verified'])->name('admin.')->group(function () {
     Route::delete('/users/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
 });
 
-Route::middleware(['auth', 'verified'])->name('options.')->group(function () {
+Route::middleware(['auth', 'verified'])->post('/session_store/update', [SessionStoreController::class, 'update'])->name('session_store.update');
+
+Route::middleware(['auth', 'verified'])->name('central-options.')->group(function () {
     Route::put('/options', [OptionsController::class, 'update'])->name('update');
 });
 
@@ -73,6 +79,9 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
     Route::post('/apps', [TenantController::class, 'store'])->name('.store');
     Route::prefix('/apps/{app}')->name('.edit')->group(function () {
         Route::get('/', [TenantController::class, 'show']);
+
+        Route::get('/settings', [AppSettingsController::class, 'index'])->name('.settings');
+        Route::post('/settings/store', [AppSettingsController::class, 'storeOrUpdate'])->name('.settings.store');
 
         Route::get('/select-content-page-options', [TenantController::class, 'selectContentPageOptions'])->name('.select-content');
 
@@ -98,6 +107,16 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
         Route::put('/collections/{collection}', [CollectionController::class, 'update'])->name('.collections.update');
         Route::post('/collections/{collection}/store_menu', [CollectionController::class, 'storeMenu'])->name('.collections.store_menu');
 
+        Route::get('/pages', [PagesController::class, 'index'])->name('.pages');
+        Route::post('/pages', [PagesController::class, 'store'])->name('.pages.store');
+        Route::get('/pages/picker/{collection?}', [PagesController::class, 'picker'])->name('.pages.picker');
+        Route::get('/pages/{page}', [PagesController::class, 'show'])->name('.pages.show');
+
+        Route::post('/widgets/store', [WidgetsController::class, 'store'])->name('.widgets.store');
+        Route::post('/widgets/{widget}/update', [WidgetsController::class, 'update'])->name('.widgets.update');
+        Route::delete('/widgets/{widget}', [WidgetsController::class, 'destroy'])->name('.widgets.delete');
+        Route::post('/widgets/{widget}/duplicate', [WidgetsController::class, 'duplicate'])->name('.widgets.duplicate');
+
         Route::get('/{form}/{field}', [RecordsController::class, 'search'])->name('.search-records');
         Route::post('/collections/{form}/records', [RecordsController::class, 'store'])->name('.collections.records.store');
         Route::put('/collections/{form}/records/{record}', [RecordsController::class, 'update'])->name('.collections.records.update');
@@ -122,12 +141,13 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
         Route::put('/collections/{collection}/lists/{list}', [ListsController::class, 'update'])->name('.collections.lists.update');
         Route::delete('/collections/{collection}/lists/{list}', [ListsController::class, 'destroy'])->name('.collections.lists.delete');
 
+        Route::get('/collections/{collection}/pages', [PagesController::class, 'collectionIndex'])->name('.collections.pages');
+
         Route::get('/collections/{collection}/lists/{list}/select_all', [ListsController::class, 'selectAll'])->name('.collections.lists.select-all');
 
         Route::get('/actions/{list}/{action}', [ActionsController::class, 'action'])->name('.collections.action');
 
 //        Route::get('/collections/{collection}/picker_forms', [ListsController::class, 'picker'])->name('.collections.picker_forms');
-
         Route::get('/collections/{collection}/forms', [CollectionController::class, 'edit'])->name('.collections.forms');
 //        Route::get('/collections/{collection}/forms/{form}', [CollectionController::class, 'edit'])->name('.collections.forms.edit');
         Route::get('/collections/{collection}/dashboards', [CollectionController::class, 'edit'])->name('.collections.dashboards');
@@ -140,8 +160,9 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
 //        Route::get('/collections/{collection}/permissions/{permission}', [CollectionController::class, 'edit'])->name('.collections.permissions.edit');
 
         Route::get('/payments', [TenantController::class, 'update'])->name('.payments');
-        Route::get('/settings', [TenantController::class, 'destroy'])->name('.settings');
+        Route::get('/destroy', [TenantController::class, 'destroy'])->name('.destroy');
     });
+
     Route::get('/apps/{app}', [TenantController::class, 'show'])->name('.edit');
     Route::put('/apps/{app}', [TenantController::class, 'update'])->name('.update');
     Route::delete('/apps/{app}', [TenantController::class, 'destroy'])->name('.destroy');

@@ -6,6 +6,8 @@ import InputError from "@/Components/Form/InputError";
 
 function RealFieldRow({value:initialValue, urlUpdate, name, label, type, error, app, children, ...props}) {
 
+    if(props.show === false) return null;
+
     Children.only(children);
 
     const [value, setValue] = useState(initialValue);
@@ -21,6 +23,13 @@ function RealFieldRow({value:initialValue, urlUpdate, name, label, type, error, 
     }, [error]);
 
     function updateRemote(name, value) {
+
+        if(typeof urlUpdate === 'function') {
+            urlUpdate(name, value, () => setLoading(true), () => setLoading(false));
+        }
+
+        if(!urlUpdate || typeof urlUpdate !== 'string') return;
+
         return Inertia.put(urlUpdate, collect({[name]: value}).undot().all(), {
             onBefore: () => setLoading(true),
             onSuccess: () => setLoading(false),

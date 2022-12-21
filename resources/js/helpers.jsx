@@ -318,3 +318,32 @@ export function getSectionsFormOptions(collections, collection) {
 
     return options;
 }
+
+
+export function getColor(color, tint = 600, returnRgbFromClass = false) {
+
+    const colorClass = {
+        success: {50: 'bg-success-50', 100: 'bg-success-100', 200: 'bg-success-200', 300: 'bg-success-300', 400: 'bg-success-400', 500: 'bg-success-500', 600: 'bg-success-600', 700: 'bg-success-700', 800: 'bg-success-800', 900: 'bg-success-900'}[tint],
+        danger: {50: 'bg-danger-50', 100: 'bg-danger-100', 200: 'bg-danger-200', 300: 'bg-danger-300', 400: 'bg-danger-400', 500: 'bg-danger-500', 600: 'bg-danger-600', 700: 'bg-danger-700', 800: 'bg-danger-800', 900: 'bg-danger-900'}[tint],
+        warning: {50: 'bg-warning-50', 100: 'bg-warning-100', 200: 'bg-warning-200', 300: 'bg-warning-300', 400: 'bg-warning-400', 500: 'bg-warning-500', 600: 'bg-warning-600', 700: 'bg-warning-700', 800: 'bg-warning-800', 900: 'bg-warning-900'}[tint],
+        info: {50: 'bg-info-50', 100: 'bg-info-100', 200: 'bg-info-200', 300: 'bg-info-300', 400: 'bg-info-400', 500: 'bg-info-500', 600: 'bg-info-600', 700: 'bg-info-700', 800: 'bg-info-800', 900: 'bg-info-900'}[tint],
+        primary: {50: 'bg-primary-50', 100: 'bg-primary-100', 200: 'bg-primary-200', 300: 'bg-primary-300', 400: 'bg-primary-400', 500: 'bg-primary-500', 600: 'bg-primary-600', 700: 'bg-primary-700', 800: 'bg-primary-800', 900: 'bg-primary-900'}[tint],
+        secondary: {50: 'bg-secondary-50', 100: 'bg-secondary-100', 200: 'bg-secondary-200', 300: 'bg-secondary-300', 400: 'bg-secondary-400', 500: 'bg-secondary-500', 600: 'bg-secondary-600', 700: 'bg-secondary-700', 800: 'bg-secondary-800', 900: 'bg-secondary-900'}[tint],
+    }[color];
+
+    if(!colorClass) {
+        return returnRgbFromClass ? 'rgba(0, 0, 0, 0)' : '';
+    }
+
+    if(returnRgbFromClass) {
+        const element = document.createElement('div');
+        element.classList.add(colorClass);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        const rgb = window.getComputedStyle(element).getPropertyValue('background-color');
+        element.remove();
+        return rgb;
+    }
+
+    return colorClass;
+}

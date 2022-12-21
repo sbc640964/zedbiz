@@ -115,14 +115,18 @@ class CollectionController extends Controller
             $app->run(function () use ($forces, $collection) {
                 if($collection) {
                     $collection = Collection::findOrFail($collection);
-                    $collection->migrate($forces->has($collection->id));
-                    $collection->createModel();
+                    if($collection->columns && $collection->columns->count() > 0){
+                        $collection->migrate($forces->has($collection->id));
+                        $collection->createModel();
+                    }
                 } else {
                     $collections = Collection::all();
                     $collections->each(function ($collection) use ($forces) {
-                        $collection->migrate($forces->has($collection->id), true);
-                        $collection->migrateForeign();
-                        $collection->createModel();
+                        if($collection->columns && $collection->columns->count() > 0){
+                            $collection->migrate($forces->has($collection->id), true);
+                            $collection->migrateForeign();
+                            $collection->createModel();
+                        }
                     });
                 }
             });

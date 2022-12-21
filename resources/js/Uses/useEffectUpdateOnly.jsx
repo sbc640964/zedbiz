@@ -5,9 +5,11 @@ function useDidUpdateEffect(fn, inputs) {
 
     useEffect(() => {
         if (didMountRef.current) {
-            return fn();
+            fn();
         }
-        didMountRef.current = true;
+        else {
+            didMountRef.current = true;
+        }
     }, inputs);
 }
 

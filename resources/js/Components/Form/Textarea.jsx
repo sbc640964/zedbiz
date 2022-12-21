@@ -44,6 +44,7 @@ function Textarea({
                 rows={rows}
                 {...props}
             />
+            {props.errors && <InputError message={props.errors}/>}
         </div>
     );
 }

@@ -16,7 +16,7 @@ function CreateCollection({app, setOpen, open, onClose}) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        post(route('admin.apps.edit.collections.store', app.id,), {
+        post(route('admin.apps.edit.collections.store', app.id), {
             preserveScroll: true,
             onSuccess: () => {
                 setOpen(false);

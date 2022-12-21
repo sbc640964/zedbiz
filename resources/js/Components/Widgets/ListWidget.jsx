@@ -6,7 +6,7 @@ import {upperFirst} from "lodash/string";
 
 function ListWidget({label, column, widgetsValues, icon, aggregations, color, id}) {
 
-    const [currentAggregation, setCurrentAggregation] = useState(aggregations[0] );
+    const [currentAggregation, setCurrentAggregation] = useState(aggregations[0]);
 
     const colorIcon = {
         success: 'fill-green-100 stroke-green-600',

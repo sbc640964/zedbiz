@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import Tooltip from "@/Components/Dialogs/Tooltip";
 import Icon from "@/Components/Icon";
 
@@ -9,13 +9,9 @@ function Column({ children, className, width, isJustifyBetween, tooltip, show = 
         return null;
     }
 
-    const { multiRows } = props;
-    const [isTooltipContainer, setIsTooltipContainer] = useState(false);
-    const refColumnOverflowHidden = useRef(null);
+    const refEndRenderColumn = useRef(null);
 
-    useEffect(() => {
-       setIsTooltipContainer(refColumnOverflowHidden.current?.offsetWidth < refColumnOverflowHidden.current?.scrollWidth);
-    }, []);
+    const { multiRows } = props;
 
     const classes = classNames([
         {'whitespace-nowrap': !multiRows},
@@ -26,19 +22,21 @@ function Column({ children, className, width, isJustifyBetween, tooltip, show = 
             className={`flex items-center text-sm py-3 max-w-full px-4 relative ${className}`}
             style={{flex: `${width ? 0 : 1} 0 ${width ? width : 0}px`, minWidth: `${width ?? 100}px`}}
         >
-            <div ref={refColumnOverflowHidden} className={`${classes} text-ellipsis overflow-hidden ${isJustifyBetween ? 'w-full' : ''}`}>
-                {isTooltipContainer ? (
+            <div
+                className={`${classes} text-ellipsis overflow-hidden ${isJustifyBetween ? 'w-full' : ''}`}
+            >
+                {tooltip ? (
                     <>
                         <Tooltip
-                            className="!bg-white"
                             content={children}
+                            delay={500}
                         >
-                            <span className="inline mr-1 rtl:mr-0 rtl:ml-1 cursor-pointer"><Icon className="inline w-4 h-4 text-gray-500/50 stroke-1" name="ellipsis-horizontal-circle"/></span>
+                            {children}
                         </Tooltip>
-                        {children}
                     </>
                 ) : children}
             </div>
+            <span ref={refEndRenderColumn}></span>
         </div>
     )
 }

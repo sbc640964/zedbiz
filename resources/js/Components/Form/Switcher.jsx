@@ -30,7 +30,7 @@ function Switcher({ name, value, handleChange, color, size, type, className, ...
     }
 
     return (
-        <label className="relative inline-block mr-2 align-middle select-none transition duration-200 ease-in">
+        <label className="mt-1 relative inline-block align-middle select-none transition duration-200 ease-in">
             <button
                 type="button"
                 role="checkbox"

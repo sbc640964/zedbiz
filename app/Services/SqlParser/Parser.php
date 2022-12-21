@@ -11,6 +11,7 @@ class Parser
 {
     private string $sql;
     private $query;
+    private $parser;
 
     public function __construct($sql)
     {
@@ -32,18 +33,23 @@ class Parser
 
     public function parse()
     {
-        $parser = new BaseParser($this->sql);
+        $parser = $this->parser = new BaseParser($this->sql);
         //        $flags = Query::getFlags($parser->statements[0]);
         $this->select($parser->statements[0]->expr);
         $this->from($parser->statements[0]->from);
         $this->join($parser->statements[0]->join);
         $this->where($parser->statements[0]->where);
-        $this->groupBy($parser->statements[0]->group);
 
+        $this->groupBy($parser->statements[0]->group);
         $this->orderBy($parser->statements[0]->order);
 
         return $this;
 
+    }
+
+    function getParser(): BaseParser
+    {
+        return $this->parser;
     }
 
     function validate()

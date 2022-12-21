@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import InputError from "@/Components/Form/InputError";
 
 export default function Input({
     type = 'text',
@@ -44,7 +45,7 @@ export default function Input({
                 name={name}
                 value={value}
                 className={
-                    `placeholder:text-gray-300 border-gray-300 focus:ring-opacity-50 rounded-md shadow-sm ${colorClasses} ${sizeClasses} ` +
+                    `placeholder:text-gray-300 ${props.errors ? 'border-danger-300' : 'border-gray-300'} focus:ring focus:ring-opacity-50 rounded-md shadow-sm ${colorClasses} ${sizeClasses} ` +
                     className
                 }
                 ref={input}
@@ -54,6 +55,7 @@ export default function Input({
                 placeholder={placeholder}
                 {...props}
             />
+            {props.errors && <InputError message={props.errors}/>}
         </div>
     );
 }

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Controllers\Tenant\MenuController;
 use App\Models\Menu;
+use App\Services\ConfigApp;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tightenco\Ziggy\Ziggy;
@@ -51,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'tenant' => tenant(),
             'menu' => fn() => tenant() ? MenuController::make() : null,
             'queryParameters' => $request->all(),
+            'config' => ConfigApp::get(),
         ]);
     }
 }

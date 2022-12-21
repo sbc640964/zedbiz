@@ -250,6 +250,22 @@ function ColumnFormInputs({handle, item: column, index, columns, setData, errors
                                     />
                                 </FieldRow>
 
+                                <FieldRow label="Thousands separator" show={column.type === 'number'} widths={['w-1/3', 'w-2/3']}>
+                                    <Switcher
+                                        value={column.thousands_separator ?? false}
+                                        handleChange={(e) => setData('thousands_separator', e.target.value)}
+                                    />
+                                </FieldRow>
+
+                                <FieldRow label="Decimal places" show={column.type === 'number'} widths={['w-1/3', 'w-2/3']}>
+                                    <Input
+                                        className="text-sm w-full"
+                                        value={column.decimal_places}
+                                        handleChange={(e) => setData('decimal_places', e.target.value)}
+                                        placeholder="2"
+                                    />
+                                </FieldRow>
+
                                 <FieldRow label="Prefix" widths={['w-1/3', 'w-2/3']}>
                                     <Input
                                         className="text-sm w-full"

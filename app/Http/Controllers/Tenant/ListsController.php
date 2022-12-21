@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\ListCollection;
+use App\Models\Model;
+use App\Models\Option;
+use App\Services\PrepareValues;
 use App\Services\SqlParser\Parser;
 use Illuminate\Database\Query\Builder;
+use stdClass;
 use Str;
 
 class ListsController extends Controller
@@ -17,13 +21,16 @@ class ListsController extends Controller
 
     public function getList(
         ListCollection|int $list,
-        ?int $perPage = 10,
+        ?int $perPage = null,
         ?int $recordId = null,
         $returnQuery = false,
         $withoutSearch = false,
         $baseUrl = null,
         ?array $options = []
     ) {
+
+        $perPage = $perPage ?? Option::getOption('per_page-' . request()->path()) ?? 10;
+
         if(is_numeric($list)) {
             $list = ListCollection::findOrFail($list);
         }
@@ -37,12 +44,22 @@ class ListsController extends Controller
             return $query;
         }
 
-        return $this->responseQuery($list, $query, $perPage, $recordId, [
+        $results = $this->responseQuery($list, $query, $perPage, $recordId, [
             'withoutSearch' => $withoutSearch,
             'baseUrl' => $baseUrl,
             'customParams' => $options['customParams'] ?? null,
             'whereRaw' => $options['whereRaw'] ?? null,
         ]);
+
+        if(!($options['noFormat'] ?? false)){
+            $isOneRecord = is_subclass_of($results, Model::class) || $results instanceof stdClass;
+            $results = PrepareValues::prepareResults($isOneRecord ? collect($results) : $results, $list);
+            if($isOneRecord){
+                $results['formats'] = $results['formats']->first();
+            }
+        }
+
+        return $results;
     }
 
     public function getListRaw(ListCollection|int $list, ?array $option = [])
@@ -153,6 +170,7 @@ class ListsController extends Controller
             }
 
             return $query->onEachSide(1);
+
         }catch (\Throwable $e) {
             session()->flash('toast', [
                 'type' => 'error',

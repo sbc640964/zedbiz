@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\OptionsController;
 use App\Http\Controllers\Tenant\ActionsController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ImportController;
@@ -40,7 +41,11 @@ Route::middleware([
 
     Route::group(['prefix' => 'app', 'middleware' => ['auth']], function () {
 
-        Route::get('/', [DashboardController::class, 'overview'])->name('app');
+        Route::get('/', [DashboardController::class, 'show'])->name('tenant.dashboard');
+
+        Route::put('/options', [OptionsController::class, 'update'])->name('options.update');
+
+        //Route::get('/', [DashboardController::class, 'overview'])->name('app');
 
         Route::post('/{collection}/import/validate', [ImportController::class, 'validateRows'])->name('import.validate');
         Route::post('/{collection}/import/store', [ImportController::class, 'store'])->name('import.store');

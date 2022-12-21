@@ -49,14 +49,17 @@ class RecordsController extends Controller
 
             if(data_get($action, 'config.' . $field['id'] . '.query.enabled', false)){
                 $statementRaw = data_get($action, 'config.' . $field['id'] . '.query.statement', null);
-                $statementRaw = Token::getTokens($statementRaw, $referenceRecord ? [
-                    'ROW' =>    (new ListsController())->getList($list, 0, $referenceRecord),
-                ] : []);
+                $statementRaw = Token::getTokens(
+                    $statementRaw,
+                    $referenceRecord ? [
+                        'ROW' =>    (new ListsController())->getList($list, 0, $referenceRecord, options: ['noFormat' => true]),
+                    ] : [],
+                    ['onFallback' => ['ROW' => 'NULL']]
+                );
 
                 $records = $records->whereRaw($statementRaw);
             }
         }
-
 
         return $records->get();
     }

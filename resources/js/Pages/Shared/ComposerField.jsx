@@ -9,6 +9,7 @@ import {appUrlName} from "@/helpers";
 import {usePage} from "@inertiajs/inertia-react";
 import Textarea from "@/Components/Form/Textarea";
 import classNames from "classnames";
+import moment from "moment";
 
 function ComposerField({fieldSettings, value, handleChange, errors, form, options, ...props}) {
 
@@ -57,7 +58,10 @@ function ComposerField({fieldSettings, value, handleChange, errors, form, option
         'mt-1': !options?.hiddenLabel,
     }, options?.className ?? '', 'block w-full')
 
-    fieldSettings.type === 'datetime' && console.log(value)
+    function getValue() {
+        return value;
+    }
+
     return (
         <div>
             <Label value={options?.hiddenLabel ? '' : fieldSettings.label}>
@@ -65,7 +69,7 @@ function ComposerField({fieldSettings, value, handleChange, errors, form, option
                     id={fieldSettings.name}
                     type={fieldSettings.type}
                     className={`${classes}`}
-                    value={value}
+                    value={getValue()}
                     handleChange={handleChange}
                     {...collect(Component).filter((_, key) => key !== 'Component').all()}
                     autoFocus={props?.autoFocus}

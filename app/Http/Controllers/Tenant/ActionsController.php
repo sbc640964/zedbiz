@@ -137,7 +137,11 @@ class ActionsController extends Controller
             $record = $this->getFormModel($action, $form, $relationship);
             $record->setHidden(['created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by']);
             $newCasts = collect($form->columns)->whereIn('type', ['date', 'datetime', 'timestamp'])->mapWithKeys(function($item) {
-                return [$item['name'] => 'datetime:Y-m-d H:i:s'];
+                return [$item['name'] => match ($item['type']) {
+                    'date' => 'date:Y-m-d',
+                    'datetime' => 'datetime:Y-m-d H:i:s',
+                    'timestamp' => 'timestamp',
+                }];
             })->toArray();
             $record->mergeCasts($newCasts);
             $return = array_merge($return, $record->toArray());

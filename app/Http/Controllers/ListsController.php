@@ -50,7 +50,11 @@ class ListsController extends Controller
                 ->create($attributes)
         );
 
-        return redirect()->back()->with('toast', [
+        return redirect()->route('admin.apps.edit.collections.lists.edit', [
+            'app' => $app->id,
+            'collection' => $collection,
+            'list' => $list->id,
+        ])->with('toast', [
             'type' => 'success',
             'message' => 'List created successfully'
         ]);

@@ -7,6 +7,7 @@ import {collect} from "collect.js";
 import {appUrlName} from "@/helpers";
 import {v4 as uuid} from "uuid";
 import {useState} from "react";
+import moment from "moment/moment";
 
 function FormCollectionModal({open, setOpen, onClose, record, app, list, form, collection, extraSettings = [], relationships = {}}) {
 
@@ -20,10 +21,26 @@ function FormCollectionModal({open, setOpen, onClose, record, app, list, form, c
             : getDefaultValues());
     }
 
+    function getDefaultValue(type, defaultValue) {
+        switch (type) {
+            case 'date':
+            case 'datetime':
+            case 'time':
+                switch (defaultValue) {
+                    case '{{NOW}}':
+                        return moment().format(type === 'date' ? 'YYYY-MM-DD' : (type === 'time' ? 'HH:mm' : 'YYYY-MM-DD HH:mm'));
+                    default:
+                        return defaultValue;
+
+                }
+        }
+        return defaultValue;
+    }
+
     function getDefaultValues(_collection = null) {
         const collection = _collection ?? form;
         return {...collect(collection.columns).mapWithKeys((column) => {
-            return [column.name, extraSettings?.[column.id]?.defaultValue ??  column?.default ?? ''];
+            return [column.name, getDefaultValue(column.type, extraSettings?.[column.id]?.defaultValue ??  column?.default ?? '')];
         }).prepend({},'__extra_sections__').all(), ...(typeof record === 'object' ? record : {})};
     }
 
@@ -119,7 +136,7 @@ function FormCollectionModal({open, setOpen, onClose, record, app, list, form, c
 
                                 return (
                                     <div key={index} className="pt-4">
-                                        <h3 className="text-lg font-bold text-gray-600">{collectionExtra.settings.plural_label ?? 'Items'}</h3>
+                                        <h3 className="text-lg font-bold text-gray-600">{collectionExtra.settings?.plural_label ?? collectionExtra.name}</h3>
                                         {data?.__extra_sections__?.[index]?.map((item, indexRepeater) => (
                                             <div key={item.id} className="mb-4 p-4 border rounded-lg relative">
                                                 <span className="absolute top-0 right-0">

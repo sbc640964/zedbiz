@@ -22,6 +22,14 @@ function ContainerPage({label, actions = [], className, fallback, children, inne
         return actions[fallbackAction ?? 0];
     }
 
+    if(props.hiddenContinerWrapper) {
+        return (
+            <div className={className}>
+                {children}
+            </div>
+        );
+    }
+
     return (
         <Transition
             key={label}

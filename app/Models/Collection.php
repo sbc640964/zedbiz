@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\Column;
 use App\Services\Migrate;
 use App\Services\ModelCreate;
+use App\Services\Token;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -207,6 +208,70 @@ class Collection extends Model
 
     /** METHODS */
 
+    public function getDefaultForm(?array $fill = [], bool $withRelationSections = true) : Form
+    {
+        if(!empty($this->settings['default_form']) && $form = Form::find($this->settings['default_form']) ) {
+            return $form;
+        }
+
+        $fields = $this->columns->map(function ($column) use ($fill) {
+            $column['default'] = match ($column['type']) {
+                'date' => Token::getTokens($column['default'], ['format_date' => 'Y-m-d']),
+                'datetime' => Token::getTokens($column['default'], ['format_datetime' => 'Y-m-d H:i:s']),
+                'time' => Token::getTokens($column['default'], ['format_time' => 'H:i:s']),
+                default => Token::getTokens($column['default']),
+            };
+            if($fill[$column['name']] ?? false) {
+                $column['value'] = $fill[$column['name']];
+            }
+            return $column;
+        })->toArray();
+
+        $extraRelations = $withRelationSections ? $this->getExtraSectionsForm() : collect([]);
+
+        $extraSections = [];
+
+        if($extraRelations->isNotEmpty()) {
+            $extraSections = collect($this->settings['menu']['new_form_sections'])
+                ->map(function (Collection $section) use ($extraRelations) {
+                    $relation = $extraRelations->firstWhere('id', $section['collection']);
+                    if(!$relation) {
+                        return null;
+                    }
+
+                    $fields = collect($relation->getDefaultForm([], false)->fields);
+
+                    return [
+                        'label' => $relation->settings['plural_label'],
+                        'type' => 'repeater',
+                        'collection' => $relation->id,
+                        'required' => false,
+                        'max' => -1,
+                        'schema' => $fields->toArray(),
+                        'relationField' => $section['column']['collection'] !== $this->id ? $section['column']['name'] : null,
+                    ];
+                });
+        }
+
+
+        $form = new Form();
+        $form->collection_id = $this->id;
+        $form->setRelation('collection', $this);
+        $form->name = 'New ' . ($this->settings['singular_label'] ?? 'Item');
+        $form->settings = [
+            'schema' => [
+                $fields,
+                ...$extraSections->toArray(),
+            ],
+            'submit' => [
+                'label' => 'Create',
+                'icon' => 'plus',
+            ],
+        ];
+
+        return $form;
+    }
+
     /**
      * return fake ListCollection from collection columns
      * @return ListCollection
@@ -249,9 +314,12 @@ class Collection extends Model
                 ])->toArray(),
             'raw_query' => $this->getRawQueryDefaultList(),
             'enable_add_new' => true,
+            'add_new_label' => 'Add New',
+            'add_new_method' => 'modal',
             'query_group_by_id' => true,
             'enable_import' => true,
             'extra_sections' => $this->getExtraSectionsForm(),
+            'add_new_relationship_forms' => $this->settings['menu']['new_form_sections'] ?? [],
         ];
 
         $list->name = $this->name;

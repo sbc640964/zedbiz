@@ -1,21 +1,27 @@
 import Label from "@/Components/Form/Label";
 import React, {useEffect, useState} from "react";
 import {Inertia} from "@inertiajs/inertia";
-import useDidUpdateEffect from "@/Uses/useEffectUpdateOnly";
+import {usePage} from "@inertiajs/inertia-react";
 
-const PerPagePaginator =  React.memo(function ({options, data}){
+const PerPagePaginator =  React.memo(function ({options, data, url}){
 
+    const {isAdminScreen} = usePage().props;
     const [perPage, setPerPage] = useState(data.per_page);
+    const [rendered, setRendered] = useState(false);
 
-    useDidUpdateEffect(() => {
-        Inertia.put(route('options.update'), {
-            key: 'per_page-' + window.location.pathname.slice(1),
-            value: perPage,
-            redirect: window.location.pathname,
-        }, {
-            preserveScroll: true,
-            preserveState: true
-        });
+    useEffect(() => {
+        if (!rendered) {
+            setRendered(true);
+        } else {
+            Inertia.put(isAdminScreen ? route('central-options.update') : route('options.update'), {
+                key: 'per_page-' + window.location.pathname.slice(1),
+                value: perPage,
+                redirect: window.location.pathname,
+            }, {
+                preserveScroll: true,
+                preserveState: true
+            });
+        }
     }, [perPage]);
 
     const selectOptions = options ?? [10, 25, 50, 100, 250];

@@ -134,7 +134,8 @@ function List({ collection, app, list, collections, records:originalRecords, wid
 
     return (
         <ContainerPage
-            label={list.name + ' List'}
+            hiddenContinerWrapper={props.hiddenContinerWrapper}
+            label={list.name}
             className="bg-transparent border-none shadow-none rounded-none"
             actions={[
                 (list.settings?.enable_import || list.settings?.enable_export) &&
@@ -158,6 +159,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
             <ContainerPage
                 inner
                 hiddenHeader
+                hiddenContinerWrapper={props.hiddenContinerWrapper}
                 fallback={records.data.length === 0}
                 fallbackTitle={`No ${collection.settings?.plural_label ?? 'records'} found`}
                 fallbackDescription={list.settings.enable_add_new ? `You can create one by clicking the button below` : ''}
@@ -171,7 +173,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                             <div></div>
                             <div className="w-1/3">
                                 {hasSearchable() &&
-                                    <SearchInput className="w-full py-1" handleChange={searchRecords} value={search}/>
+                                    <SearchInput className="w-full py-1" handleChange={e => {searchRecords(e)}} value={search}/>
                                 }
                             </div>
                         </div>
@@ -185,7 +187,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                             }
                             {getColumns().map((column, index) => (
                                 <ColumnWithSettings
-                                    queryParameters={props?.queryParameters}
+                                    queryParameters={props?.queryParameters ?? {}}
                                     key={index}
                                     column={column}
                                     list={list}
@@ -201,7 +203,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                     <Status/>
                     <div>
                         {records.data.length === 0 && <div className="p-4 text-center text-gray-400 ">No {collection.settings?.plural_label?.toLowerCase?.() ?? 'records'} found</div>}
-                        {records.data.map((record) => (
+                        {records.data.map((record, indexRecord) => (
                             <Row key={record.id}>
                                 {list.settings?.bulk_actions?.enabled &&
                                     <Column width="48">
@@ -213,6 +215,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                                         key={index}
                                         column={column}
                                         record={record}
+                                        formats={records?.formats?.[indexRecord] ?? []}
                                         list={list}
                                         app={app}
                                         collection={collection}
@@ -273,7 +276,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                         ))}
                     </div>
                 </Table>
-                <PaginationSection data={records} ajax={props?.ajax}/>
+                <PaginationSection isAdmin={isAdminScreen} data={records} ajax={props?.ajax}/>
             </ContainerPage>
 
             <ListModal
@@ -284,7 +287,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
             />
 
             <FormCollectionModal
-                open={openCollectionModal}
+                open={!!openCollectionModal}
                 setOpen={setOpenCollectionModal}
                 record={openCollectionModal}
                 list={list}

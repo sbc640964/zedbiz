@@ -4,7 +4,7 @@ import AsyncSelect from "react-select/async";
 import AsyncSelectCreatable from "react-select/async-creatable";
 import {components} from "react-select";
 import Icon from "@/Components/Icon";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {createElement, useCallback, useEffect, useRef, useState} from "react";
 import {debounce, isEqual} from "lodash";
 import collect, {Collection} from "collect.js";
 import {addToast} from "@/helpers";
@@ -120,28 +120,44 @@ function Select({size, color, isAsync, handleChange, isCreatable, value, ...prop
         handleChange(newValue);
     }
 
+
+    function getCss() {
+        let style = {
+            control:  (provided, state) => ({}),
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+        }
+        if(size === 'xs') {
+            style.dropdownIndicator = (base) => ({...base, padding: '0.1rem'});
+            style.indicatorSeparator = (base) => ({...base, marginTop: '0.2rem', marginBottom: '0.2rem'});
+            style.input = (base) => ({...base, paddingTop: '0px', paddingBottom: '0px', margin: 0 });
+            style.valueContainer = (base) => ({...base, paddingTop: '0px', paddingBottom: '0px', margin: 0 });
+        }else if(size === 'sm') {
+            style.dropdownIndicator = (base) => ({...base, padding: '0.3rem'});
+            style.indicatorSeparator = (base) => ({...base, marginTop: '0.4rem', marginBottom: '0.4rem'});
+            style.input = (base) => ({...base, paddingTop: '0px', paddingBottom: '0px', margin: 0 });
+            style.valueContainer = (base) => ({...base, paddingTop: '0px', paddingBottom: '0px', margin: 0 });
+        }
+
+        return style;
+    }
+
     return (
-        <Component
-            components={componentsObject.current}
-            styles={ {
-                control:  (provided, state) => ({}),
-                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                dropdownIndicator: (base) => ({...base, padding: size === 'xs' ? '0.1rem' : base.padding}),
-                indicatorSeparator: (base) => ({...base, marginTop: size === 'xs' ? '0.2rem' : base.marginTop, marginBottom: size === 'xs' ? '0.2rem' : base.marginBottom}),
-                input: (base) => ({...base, ...(size === 'xs' ? {paddingTop: '0px', paddingBottom: '0px', margin: 0} : {}) }),
-                valueContainer: (base) => ({...base, ...(size === 'xs' ? {paddingTop: '0px', paddingBottom: '0px', margin: 0} : {}) }),
-                // menu: (base) => ({...base, ...(size === 'xs' ? {fontSize: '0.75rem', padding: '2px'} : {}) }),
-            }}
-            menuPortalTarget={document.body}
-            onChange={(value, actionMeta) => handleChangeSelect(value, actionMeta)}
-            value={currentValue}
-            noOptionsMessage={() => 'No options'}
-            menuPlacement="auto"
-            {...props}
-            options={options}
-            {...asyncProps}
-            onCreateOption={onCreateOption}
-        />
+        <div className="flex flex-col items-start">
+            <Component
+                components={componentsObject.current}
+                styles={getCss()}
+                menuPortalTarget={document.body}
+                onChange={(value, actionMeta) => handleChangeSelect(value, actionMeta)}
+                value={currentValue}
+                noOptionsMessage={() => 'No options'}
+                menuPlacement="auto"
+                {...props}
+                options={options}
+                {...asyncProps}
+                onCreateOption={onCreateOption}
+            />
+            {props?.errors && <span className="text-xs text-red-500">{props.errors}</span>}
+        </div>
     )
 }
 
@@ -160,7 +176,7 @@ const customComponents = (controlClasses, size) =>  ({
 
         const iconSize = {
             'base': 'w-4 h-4',
-            'sm': 'w-4 h-4',
+            'sm': 'w-3.5 h-3.5',
             'xs': 'w-3.5 h-3.5',
         }[size] ?? 'w-4 h-4';
 
@@ -170,12 +186,14 @@ const customComponents = (controlClasses, size) =>  ({
     Control: (props) => {
 
         const sizeClasses = {
-            'xs': 'focus-within:ring-[1.5px]'
+            'xs': 'focus-within:ring-[1.5px]',
+            'sm': 'focus-within:ring-[1.5px]',
         }[size] ?? '';
 
         return(
-            <div className={`${controlClasses} ${sizeClasses} border-gray-300 focus-within:ring focus-within:ring-opacity-50 rounded-md shadow-sm p-0
-            `} type="text">
+            <div className={`${controlClasses} ${sizeClasses} mt-1 border-gray-300 focus-within:ring focus-within:ring-opacity-50 rounded-md shadow-sm p-0`}
+                 type="text"
+            >
                 <components.Control
                     className="flex justify-between items-center"
                     {...props}
@@ -185,6 +203,7 @@ const customComponents = (controlClasses, size) =>  ({
             </div>
         )
     },
+
     DropdownIndicator: (props) => {
         return(<components.DropdownIndicator {...props}><Icon name={'chevron-up-down'} className={size === 'xs' ? 'w-4' : 'w-5'}/></components.DropdownIndicator>)
     },
@@ -245,7 +264,7 @@ const customComponents = (controlClasses, size) =>  ({
 
         const sizeClasses = {
             'base': '!text-base',
-            'sm': '!text-sm !px-105 !py-0.5',
+            'sm': '!text-sm !px-1.5 !py-0.5',
             'xs': '!text-xs !px-1.5 !py-0.5',
         }[size] ?? '!text-base';
 
@@ -258,7 +277,7 @@ const customComponents = (controlClasses, size) =>  ({
                         }
                         {props.data?.icon &&
                             <span className={`w-5 h-5 block rounded-md`}>
-                                   {React.createElement(props.data.icon)}
+                                   {createElement(props.data.icon)}
                                 </span>
                         }
                         {(props.data?.image) &&
@@ -298,8 +317,8 @@ const customComponents = (controlClasses, size) =>  ({
 
         const classes = {
             'base': 'text-sm',
-            'sm': 'text-sm',
-            'xs': 'text-xs',
+            'sm': '!text-sm',
+            'xs': '!text-xs',
         }[size] ?? 'text-sm';
 
         return(
@@ -312,7 +331,7 @@ const customComponents = (controlClasses, size) =>  ({
                     }
                     {props.data?.icon &&
                         <span className={`w-5 h-5 rounded-md`}>
-                                   {React.createElement(props.data.icon)}
+                                   {createElement(props.data.icon)}
                                 </span>
                     }
                     <span>{props.children}</span>

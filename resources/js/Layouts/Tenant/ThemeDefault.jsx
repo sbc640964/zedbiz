@@ -40,6 +40,15 @@ function ThemeDefault({children, title = ''}) {
                         </div>
                         <div className="mt-5 flex-grow flex flex-col">
                             <nav className="flex-1 px-4 bg-white space-y-1">
+                                {page.props.config?.show_over_view_page && (
+                                    <NavLink
+                                        href={route('tenant.dashboard')}
+                                        active={route().current('tenant.dashboard')}
+                                        icon={page.props.config?.over_view_page_icon ?? 'home'}
+                                    >
+                                        {page.props.config?.over_view_page_menu_label ?? 'Over View Page'}
+                                    </NavLink>
+                                )}
                                 {menu.items?.map((item) => (
                                     <NavLink key={item.id} href={item.url} icon={item.icon} active={item.active}>
                                         {item.label}

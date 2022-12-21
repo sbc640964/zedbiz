@@ -1,3 +1,5 @@
+import Tab from "@/Components/Tab";
+
 function Tabs({className, children, ...props}) {
     return (
         <div className="relative">
@@ -8,5 +10,7 @@ function Tabs({className, children, ...props}) {
         </div>
     )
 }
+
+Tabs.Tab = Tab
 
 export default Tabs

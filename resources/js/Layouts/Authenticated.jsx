@@ -79,8 +79,8 @@ export default function Authenticated({children, title}) {
                                         {/*    Menu*/}
                                         {/*</NavLink>*/}
 
-                                        <NavLink href={route('admin.users')} active={route().current('dashboard')} icon={'chart-pie'}>
-                                            Dashboards
+                                        <NavLink href={route('admin.apps.edit.pages', {app: app.id})} active={route().current('admin.apps.edit.pages', {app: app.id})} icon={'chart-pie'}>
+                                            Pages
                                         </NavLink>
 
                                         <NavLink href={route('admin.apps.edit.users', app.id)} active={route().current('admin.apps.edit.users', app.id)} icon={'users'}>
@@ -89,6 +89,12 @@ export default function Authenticated({children, title}) {
 
                                         <NavLink href={''} active={''} icon={'credit-card'}>
                                             Billing
+                                        </NavLink>
+
+                                        <hr/>
+
+                                        <NavLink href={route('admin.apps.edit.settings', {app: app.id})} active={route().current('admin.apps.edit.settings', {app: app.id})} icon={'cog-8-tooth'}>
+                                            Settings
                                         </NavLink>
                                     </>
                                     : <>

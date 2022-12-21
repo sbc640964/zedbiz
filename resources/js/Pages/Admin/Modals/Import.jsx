@@ -20,6 +20,10 @@ import Switcher from "@/Components/Form/Switcher";
 import ComposerField from "@/Pages/Shared/ComposerField";
 import {Inertia} from "@inertiajs/inertia";
 import {prepareRulesValidation} from "@/helpers";
+import moment from "moment";
+import {Cog8ToothIcon} from "@heroicons/react/24/outline";
+import Popover from "@/Components/Popover";
+import Input from "@/Components/Form/Input";
 
 function Import({onClose, ...props}) {
     const [keyComponent, setKeyComponent] = useState(0);
@@ -41,6 +45,7 @@ function Init({collection, app, open, onClose}) {
     const [rows, setRows] = useState([]);
     const [currentStep, setCurrentStep] = useState(1);
     const [loader, setLoader] = useState(false);
+    const [options, setOptions] = useState({});
 
     const importer = useImportValidate(rows, collection);
 
@@ -69,10 +74,11 @@ function Init({collection, app, open, onClose}) {
         const reader = new FileReader();
         reader.onload = function (e) {
             const data = e.target.result;
-            const workbook = read(data, {type: 'binary'});
+            const workbook = read(data, {type: 'binary', cellDates:true});
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const dataExcel = utils.sheet_to_json(worksheet);
+            const dataExcel = utils.sheet_to_json(worksheet, {dateNF:'yyyy-mm-dd'});
+
             if(dataExcel.length > 0){
                 setRows(dataExcel);
                 setCurrentStep(2);
@@ -127,8 +133,24 @@ function Init({collection, app, open, onClose}) {
                             </label>
                         </div>
                     )}
-                    { currentStep === 2 && <MappingColumns collection={collection} rows={rows} importer={importer} nextStep={() => setCurrentStep(3)}/> }
-                    { currentStep === 3 && <Importing collection={collection} rows={rows} importer={importer} close={close}/>}
+                    { currentStep === 2 &&
+                        <MappingColumns
+                            setOptions={(key, value) => setOptions({...options, [key]: value})}
+                            options={options}
+                            collection={collection}
+                            rows={rows}
+                            importer={importer}
+                            nextStep={() => setCurrentStep(3)}
+                        />
+                    }
+                    { currentStep === 3 &&
+                        <Importing
+                            collection={collection}
+                            rows={rows}
+                            importer={importer}
+                            close={close}
+                        />
+                    }
                 </div>
             )}
         </EmptyModal>
@@ -137,7 +159,39 @@ function Init({collection, app, open, onClose}) {
 
 export default Import
 
-function MappingColumns({rows, collection, importer, nextStep}) {
+function SettingsPopover({type, options, setOptions, collection, field}) {
+
+    return (
+            <Popover className="relative" offset={5} placement="bottom left">
+                <Popover.Trigger>
+                    <span className="cursor-pointer text-gray-400 hover:text-gray-700 "><Cog8ToothIcon className="w-4 h-4"/></span>
+                </Popover.Trigger>
+                <Popover.Content>
+                     <div className="border w-60 rounded-lg shadow-lg bg-white">
+                         {type === 'date' || !type && (
+                             <div className="p-4">
+                                 <div className="text-sm font-medium text-gray-700">Date Precision</div>
+                                 <div className="mt-2">
+                                     <Input
+                                            value={options?.date_precision ?? ''}
+                                            handleChange={(e) => setOptions({...options, date_precision: e.target.value})}
+                                            type="number"
+                                            min={0}
+                                            max={60}
+                                            size="xs"
+                                            className="w-full"
+                                            placeholder="Date Precision seconds"
+                                        />
+                                 </div>
+                             </div>
+                            )}
+                     </div>
+                </Popover.Content>
+            </Popover>
+    );
+}
+
+function MappingColumns({rows, collection, importer, nextStep, setOptions, options}) {
 
     const [columnsFile, setColumnsFile] = useState([]);
     const refHeader = useRef(null);
@@ -205,6 +259,12 @@ function MappingColumns({rows, collection, importer, nextStep}) {
         return null;
     }
 
+    function getDateColumn(date) {
+        return moment(date)
+            .add(options?.offset ?? 0, 'seconds')
+            .format(options?.format ?? 'YYYY-MM-DD HH:mm:ss');
+    }
+
     return (
         <div>
             <div>
@@ -220,15 +280,20 @@ function MappingColumns({rows, collection, importer, nextStep}) {
                     <Row className="border-b-0">
                         {columnsFile.map((column, index) => (
                             <Column key={index} width={200} isJustifyBetween>
-                                <div className="p-0.5">
-                                    <Select
-                                        className="w-full"
-                                        options={([...columns, {name: 'id', label: 'ID'}]).map(column => ({value: column.name, label: column.label})).filter(item => Object.values(mapping).includes(item.value) === false || item.value === mapping?.[column])}
-                                        value={mapping?.[column] ?? null}
-                                        isClearable
-                                        handleChange={(e) => setMapping({...mapping, [column]: e?.value})}
-                                        size={'xs'}
-                                    />
+                                <div className="p-0.5 flex gap-2">
+                                    <div className="flex-1">
+                                        <Select
+                                            className="w-full"
+                                            options={([...columns, {name: 'id', label: 'ID'}]).map(column => ({value: column.name, label: column.label})).filter(item => Object.values(mapping).includes(item.value) === false || item.value === mapping?.[column])}
+                                            value={mapping?.[column] ?? null}
+                                            isClearable
+                                            handleChange={(e) => setMapping({...mapping, [column]: e?.value})}
+                                            size={'xs'}
+                                        />
+                                    </div>
+                                    <div className="flex items-center">
+                                       <SettingsPopover/>
+                                    </div>
                                 </div>
                             </Column>
                         ))}
@@ -265,7 +330,7 @@ function MappingColumns({rows, collection, importer, nextStep}) {
                         <Row key={index} style={{...style, width: columnsFile.length * 200 + 'px'}} className={`w-full ${errors.hasErrorRow(index) ? 'bg-red-50' : ''}`}>
                             {columnsFile.map((column, key) => (
                                 <Column key={key} width={200} className={`${errors.hasErrorColumn(index, mapping[column]) ? 'bg-red-100' : ''}`}>
-                                    {rows[index][column]}
+                                    {rows[index][column] instanceof Date ? getDateColumn(rows[index][column])  : rows[index][column]}
                                     {errors.hasErrorColumn(index, mapping[column]) && (
                                         <span className="text-xs text-red-800">
                                             {errors.getColumnError(index, mapping[column])}

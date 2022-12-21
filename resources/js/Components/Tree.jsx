@@ -3,7 +3,6 @@ import {ChevronDownIcon, ChevronUpIcon} from "@heroicons/react/20/solid";
 
 function Tree({items, children, ...props}) {
 
-
     function handleClickEvent(item) {
         typeof props.onClick === 'function' && props.onClick(item);
     }
@@ -11,7 +10,7 @@ function Tree({items, children, ...props}) {
     return (
         <div>
             {items.map(item => (
-                <Item item={item} onClick={handleClickEvent} key={item.id}>
+                <Item item={item} onClick={handleClickEvent} key={item.id} style={props.style}>
                     {children}
                 </Item>
             ))}
@@ -22,21 +21,21 @@ function Tree({items, children, ...props}) {
 export default Tree;
 
 
-function Item({item, children, ...props}) {
+function Item({item, children, style, ...props}) {
 
     const [open, setOpen] = useState(false);
 
     return (
         <div key={item.id} className="last:mb-0 mb-0.5">
             {item.children?.length > 0 ? (
-                <div>
-                    <div onClick={() => setOpen(!open)} className="bold flex items-center justify-between">
-                        {typeof children === "function" ? children(item, true) :
+                <div style={style}>
+                    <div onClick={() => setOpen(!open)} className="bold flex items-center justify-between" style={style}>
+                        {typeof children === "function" ? children(item, true, props.style) :
                             <>
                                 {item.label}
                                 <span>
-                                            {open ? <ChevronUpIcon className="h-3 w-3"/> : <ChevronDownIcon className="h-3 w-3"/>}
-                                        </span>
+                                    {open ? <ChevronUpIcon className="h-3 w-3"/> : <ChevronDownIcon className="h-3 w-3"/>}
+                                </span>
                             </>
                         }
 
@@ -51,7 +50,7 @@ function Item({item, children, ...props}) {
                 </div>
             ) : (
                 <button onClick={() => props.onClick(item)} className="w-full">
-                    {typeof children === "function" ? children(item, false) : item.label}
+                    {typeof children === "function" ? children(item, false, style) : item.label}
                 </button>
             )}
         </div>

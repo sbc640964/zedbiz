@@ -17,7 +17,7 @@ function IconPicker({ value, handleChange, disabled, className, size, onBlur, er
                 type="button"
                 action={() => setOpen(true)}
                 color="secondary"
-                className="block z-10 cursor-pointer p-1.5 border border-gray-300 focus:border-primary-500 focus:ring-primary-500 focus:ring-2 focus:ring-opacity-50"
+                className={`${className ?? ''} block z-10 cursor-pointer p-1.5 border border-gray-300 focus:border-primary-500 focus:ring-primary-500 focus:ring-2 focus:ring-opacity-50`}
                 negative
                 disabled={disabled}
                 icon={value}

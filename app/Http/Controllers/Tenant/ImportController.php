@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use Arr;
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -159,8 +160,6 @@ class ImportController extends Controller
 
                 return $row;
             });
-
-            Log::debug('message', $rows);
 
             $updates = $rows->filter(fn($row) => isset($row['id']) && !isset($row['failed']))->map(function ($row) use ($existingRows) {
                 $existingRow = $existingRows->find($row['id']);
