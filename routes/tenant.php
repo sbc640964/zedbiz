@@ -45,9 +45,6 @@ Route::middleware([
 
         Route::put('/options', [OptionsController::class, 'update'])->name('options.update');
 
-        //TODO: temp route
-        Route::get('/', [DashboardController::class, 'show'])->name('app');
-
         Route::post('/{collection}/import/validate', [ImportController::class, 'validateRows'])->name('import.validate');
         Route::post('/{collection}/import/store', [ImportController::class, 'store'])->name('import.store');
         Route::get('/{collection:slug}/list/{list?}', [ScreenController::class, 'list'])->name('tenant.collections.lists.show');
