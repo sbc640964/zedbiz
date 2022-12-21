@@ -38,7 +38,7 @@ class ListWidget extends WidgetBase
 
         return [
             'collection' => Collection::find($this->getData('self.widget.settings.collection'))->toArray(),
-            'records' => (new ListsController())->getList($list)->toArray(),
+            'records' => (new ListsController())->getList($list),
             'list' => $list->toArray(),
         ];
     }
