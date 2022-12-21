@@ -45,7 +45,8 @@ Route::middleware([
 
         Route::put('/options', [OptionsController::class, 'update'])->name('options.update');
 
-        //Route::get('/', [DashboardController::class, 'overview'])->name('app');
+        //TODO: temp route
+        Route::get('/', [DashboardController::class, 'show'])->name('app');
 
         Route::post('/{collection}/import/validate', [ImportController::class, 'validateRows'])->name('import.validate');
         Route::post('/{collection}/import/store', [ImportController::class, 'store'])->name('import.store');
