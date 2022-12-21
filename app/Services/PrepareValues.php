@@ -46,7 +46,7 @@ class PrepareValues
             $value,
                 $options['decimal_places'] ?? 2,
             '.',
-            $options['thousands_separator'] ? ',' : ''
+            ($options['thousands_separator'] ?? true) ? ',' : ''
         );
     }
 
