@@ -174,4 +174,25 @@ class ListsController extends Controller
 
         return $attributes;
     }
+
+    public function duplicate(Tenant $app, $collection, $list)
+    {
+        $app->initialize();
+
+        $collection = Collection::findOrFail($collection);
+        $list = $collection->lists()->findOrFail($list);
+
+        $newList = $list->replicate();
+
+        $newList->name = $newList->name . ' (copy)';
+
+        $newList->save();
+
+        $app->end();
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'List duplicated successfully'
+        ]);
+    }
 }

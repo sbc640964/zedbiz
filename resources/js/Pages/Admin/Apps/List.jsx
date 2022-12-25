@@ -276,7 +276,7 @@ function List({ collection, app, list, collections, records:originalRecords, wid
                         ))}
                     </div>
                 </Table>
-                <PaginationSection isAdmin={isAdminScreen} data={records} ajax={props?.ajax}/>
+                { !props.hiddenPagination && <PaginationSection isAdmin={isAdminScreen} data={records} ajax={props?.ajax}/>}
             </ContainerPage>
 
             <ListModal

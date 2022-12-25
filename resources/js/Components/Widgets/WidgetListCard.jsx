@@ -52,6 +52,7 @@ function NumberWidget({ setModal, width, description, bg_color, className, actio
                     queryParameters={[]}
                     hiddenContinerWrapper
                     ajax
+                    hiddenPagination
                 />
             </Card.Body>
         </Card>

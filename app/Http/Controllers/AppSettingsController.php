@@ -67,9 +67,11 @@ class AppSettingsController extends Controller
         return back();
     }
 
-    public function index(Tenant $app)
+    public function getAllSettings(Tenant $app)
     {
-        $app->initialize();
+        $isAdminCentral = $app->id !== tenant('id');
+
+        $isAdminCentral && $app->initialize();
 
         $settings = Option::whereNull('user_id')
             ->get(['key', 'value'])
@@ -79,9 +81,14 @@ class AppSettingsController extends Controller
             ->collapse()
             ->toArray();
 
-        $app->end();
+        $isAdminCentral && $app->end();
 
-        $settings = $this->applyCasts($settings);
+        return $this->applyCasts($settings);
+    }
+
+    public function index(Tenant $app)
+    {
+        $settings = $this->getAllSettings($app);
 
         return Inertia::render('Admin/Apps/Settings/Index', [
             'settings' => $settings,

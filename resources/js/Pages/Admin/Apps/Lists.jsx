@@ -45,6 +45,14 @@ function Lists({ collection, app }) {
                        <Column className="w-60">{list.query_mode}</Column>
                           <Column className="w-60 justify-end">
                                 <Button
+                                    icon="square-2-stack"
+                                    iconType="heroicon"
+                                    negative
+                                    size={"sm"}
+                                    tooltip="Duplicate"
+                                    action={() => Inertia.post(route('admin.apps.edit.collections.lists.duplicate', {app: app.id, collection: collection.id, list: list.id}))}
+                                />
+                                <Button
                                     icon="pencil"
                                     iconType="outline"
                                     negative

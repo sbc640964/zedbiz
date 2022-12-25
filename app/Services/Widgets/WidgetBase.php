@@ -3,6 +3,7 @@
 namespace App\Services\Widgets;
 
 use App\Models\Widget;
+use function Symfony\Component\Translation\t;
 
 abstract class WidgetBase
 {
@@ -78,12 +79,29 @@ abstract class WidgetBase
 
     protected function getToken(string $token, $default = null): ?string
     {
-        $tokens = request()->all();
+        $tokens = $this->getDefinedTokens();
         $tokens['self'] = $this->data;
-        $tokens['page'] = session('/' . request()->path() . "_session_store", []);
 
         $token = \Str::replace('?', '', $token);
 
         return data_get($tokens, $token, $default);
+    }
+
+    protected function getDefinedTokens(): array
+    {
+        return [
+            'tenant' => tenant(),
+            'user' => auth()->user(),
+            'page' => array_merge(
+                $this->getPageStore(),
+                request()->all(),
+                request()->route()->parameters()
+            ),
+        ];
+    }
+
+    protected function getPageStore(): array
+    {
+        return $this->widget->page->getDefaultStoreTokens();
     }
 }

@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request)
     {
-        return array_merge(parent::share($request), [
+        $props = array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user(),
             ],
@@ -52,7 +52,12 @@ class HandleInertiaRequests extends Middleware
             'tenant' => tenant(),
             'menu' => fn() => tenant() ? MenuController::make() : null,
             'queryParameters' => $request->all(),
-            'config' => ConfigApp::get(),
         ]);
+
+        if(tenant()){
+            $props['config'] = ConfigApp::get();
+        }
+
+        return $props;
     }
 }

@@ -58,7 +58,7 @@ function NumberWidget({ setModal, value, label, icon, comparison, width, descrip
                 }
 
                 if(value.thousand_separator){
-                    _ = _.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    _ = (_ + '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 }
 
                 if(currencyCode === null){

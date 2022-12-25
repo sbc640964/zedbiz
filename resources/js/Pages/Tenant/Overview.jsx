@@ -1,8 +1,22 @@
 import ThemeDefault from "@/Layouts/Tenant/ThemeDefault";
 import ContainerPage from "@/Components/Table/ContainerPage";
 import RenderWidget from "@/Components/Widgets/RenderWidget";
+import {Inertia} from "@inertiajs/inertia";
+import DatesPickerRangeWidgets from "@/Components/Widgets/DatesPickerRangeWidgets";
 
 function Overview({page, ...props}) {
+
+    function setDates(newDates) {
+        Inertia.reload({
+            data: {
+                range_date_start: newDates.start.format('YYYY-MM-DD'),
+                range_date_end: newDates.end.format('YYYY-MM-DD'),
+            },
+            preserveScroll: true,
+            preserveState: true,
+        })
+    }
+
     return (
         <ContainerPage
             label={<div className="flex space-x-3 rtl:space-x-reverse">
@@ -15,10 +29,10 @@ function Overview({page, ...props}) {
         >
             <div>
                 <div>
-                    {/*<DatesPickerRangeWidgets*/}
-                    {/*    // onChange={newDates => setStore('rangeDate', newDates)}*/}
-                    {/*    // value={store?.rangeDate ?? {}}*/}
-                    {/*/>*/}
+                    <DatesPickerRangeWidgets
+                        onUpdate={newDates => setDates(newDates)}
+                        initialValue={page.settings?.default_range_date ?? 'this_month'}
+                    />
                 </div>
                 <div className="flex flex-wrap -mx-3">
                     {Object.keys(props).filter(i => i.startsWith('widget_')).map(widgetName => (

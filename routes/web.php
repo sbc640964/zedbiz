@@ -111,6 +111,7 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
         Route::post('/pages', [PagesController::class, 'store'])->name('.pages.store');
         Route::get('/pages/picker/{collection?}', [PagesController::class, 'picker'])->name('.pages.picker');
         Route::get('/pages/{page}', [PagesController::class, 'show'])->name('.pages.show');
+        Route::post('/pages/{page}/update', [PagesController::class, 'update'])->name('.pages.update');
 
         Route::post('/widgets/store', [WidgetsController::class, 'store'])->name('.widgets.store');
         Route::post('/widgets/{widget}/update', [WidgetsController::class, 'update'])->name('.widgets.update');
@@ -138,8 +139,10 @@ Route::middleware(['auth', 'verified'])->name('admin.apps')->group(function () {
         Route::get('/collections/{collection}/lists/new', [ListsController::class, 'create'])->name('.collections.lists.create');
         Route::post('/collections/{collection}/lists', [ListsController::class, 'store'])->name('.collections.lists.store');
         Route::get('/collections/{collection}/lists/{list}', [ListsController::class, 'edit'])->name('.collections.lists.edit');
+        Route::post('/collections/{collection}/lists/{list}/duplicate', [ListsController::class, 'duplicate'])->name('.collections.lists.duplicate');
         Route::put('/collections/{collection}/lists/{list}', [ListsController::class, 'update'])->name('.collections.lists.update');
         Route::delete('/collections/{collection}/lists/{list}', [ListsController::class, 'destroy'])->name('.collections.lists.delete');
+
 
         Route::get('/collections/{collection}/pages', [PagesController::class, 'collectionIndex'])->name('.collections.pages');
 

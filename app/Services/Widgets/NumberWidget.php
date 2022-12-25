@@ -45,7 +45,6 @@ class NumberWidget extends WidgetBase
             $sql = $this->strWithTokens($sql, 'NULL');
 
             $query = Parser::make($sql)
-                ->parse()
                 ->getQuery();
 
             $this->setData('self.query.data', $query->get()[0]);

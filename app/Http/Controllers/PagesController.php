@@ -46,6 +46,41 @@ class PagesController extends Controller
         return redirect()->route('admin.apps.edit.pages', [$app]);
     }
 
+    public function update(Tenant $app, $page)
+    {
+        $app->initialize();
+
+        $page = Page::findOrFail($page);
+
+        $rangeDates = [
+            'today',
+            'yesterday',
+            'this_week',
+            'last_week',
+            'last_7_days',
+            'last_30_days',
+            'this_month',
+            'last_month',
+            'last_3_months',
+            'last_6_months',
+            'this_year',
+            'last_year',
+        ];
+
+        //validate
+        $attributes = request()->validate([
+            'name' => 'required|max:255',
+            'description' => 'nullable',
+            'settings.default_range_date' => 'nullable|in:'.implode(',', $rangeDates),
+        ]);
+
+        $page->update($attributes);
+
+        $app->end();
+
+        return back();
+    }
+
     public function collectionIndex(Tenant $app, $collection)
     {
         $data = $app->run(function () use ($collection) {

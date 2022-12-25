@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Option;
+use App\Http\Controllers\AppSettingsController;
 
 class ConfigApp
 {
@@ -23,7 +23,7 @@ class ConfigApp
 
     public static function init()
     {
-        self::$config = Option::all()->pluck('value', 'key')->toArray();
+        self::$config = (new AppSettingsController())->getAllSettings(tenant());
     }
 
     public static function set(string $key, $value)
