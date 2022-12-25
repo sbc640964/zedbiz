@@ -71,7 +71,7 @@ function NumberWidget({ setModal, value, label, icon, comparison, width, descrip
                 break;
             case 'number':
                 if(value.thousand_separator){
-                    _ = _.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    _ = (_ + '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 }
                 break;
         }
