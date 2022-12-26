@@ -12,17 +12,44 @@ function RenderWidget({widget, setModalContent}) {
     }
 
     function parserToken(str) {
-        let self = widget.self;
-        // console.log(str, widget);
-        const newStr = str.replace(/\{\{(.*)\}\}/g, (match, p1) => {
-            //console.log(match, p1);
-            try {
-                return eval(p1);
-            } catch (e) {
-                return match;
+        return str.replace(/\{\{(.*)\}\}/g, (match, p1) => {
+            let [token, ...funcs] = p1.split('|');
+
+            let isCalc = token.includes('*') || token.includes('+') || token.includes('-') || token.includes('/');
+
+            token = token.includes(' ') ? token.split(' ') : [token];
+
+            token = token.map(v => {
+                if(v.includes('.')){
+                    const [t, defaultValue] = v.split(':', 2);
+                    return getTokenValue(t, defaultValue ?? null);
+                }
+                if(isNaN(v) && v !== '-' && v !== '+' && v !== '*' && v !== '/'){
+                    isCalc = false;
+                }
+                return v;
+            }).join(' ');
+
+            if(isCalc){
+                token = Function(`return ${token}`)();
             }
+
+            if (funcs.length) {
+                funcs.forEach(func => {
+                    const [name, ...args] = func.split(':');
+                    token = Function(`return ${name}(${args.map(v => `'${v}'`).join(',')})`)(token);
+                });
+            }
+
+            return token;
         });
-        return newStr;
+    }
+
+    function getTokenValue(token, defaultValue = null) {
+        const data = {
+            self: widget.self,
+        };
+        return get(data, token, defaultValue);
     }
 
     function renderWidgetData() {

@@ -1,26 +1,15 @@
 import {useEffect, useRef, useState} from "react";
-import {
-    CategoryScale,
-    Chart as ChartJS, Filler, Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip as TooltipChartJs
-} from "chart.js";
+import 'chart.js/auto';
 import {Chart} from "react-chartjs-2";
 import Card from "@/Components/Widgets/Card";
 import {getColor} from "@/helpers";
 import {twMerge} from "tailwind-merge";
 
+// console.log('ChartLine', _.cloneDeep(ChartJS.registry.controllers.items));
 function ChartLine({className, height, label, data = {datasets: []}, ...props}) {
 
     const chartRef = useRef(null);
     const [chartData, setChartData] = useState({datasets: [], labels: []});
-
-    const registrable = [TooltipChartJs, Legend, Title, Filler, LineElement, PointElement, CategoryScale, LinearScale];
-
-    ChartJS.register(...registrable);
 
     function gradiant(ctx, area, color) {
         const gradient = ctx.createLinearGradient(0, area.bottom, 0, area.top);
@@ -60,8 +49,8 @@ function ChartLine({className, height, label, data = {datasets: []}, ...props}) 
             </Card.Header>
             <Card.Body>
                 <Chart
+                    type={'line'}
                     ref={chartRef}
-                    type="line"
                     datasetIdKey='id'
                     options={{
                         maintainAspectRatio: false,

@@ -1,4 +1,15 @@
-import {ArcElement, Chart as ChartJS, Legend, Tooltip as TooltipChartJs} from "chart.js";
+// import {
+//     ArcElement,
+//     CategoryScale,
+//     Chart as ChartJS,
+//     Filler,
+//     Legend, LinearScale,
+//     LineElement,
+//     PointElement,
+//     Title,
+//     Tooltip as TooltipChartJs
+// } from "chart.js";
+import 'chart.js/auto';
 import {Chart} from "react-chartjs-2";
 import Card from "@/Components/Widgets/Card";
 import {useEffect, useState} from "react";
@@ -9,9 +20,6 @@ function ChartDoughnut({className, label, height, data = {datasets: []}, ...prop
 
     const [dataChart, setDataChart] = useState({datasets: [], labels: []});
 
-    const registrable = [TooltipChartJs, Legend, ArcElement];
-
-    ChartJS.register(...registrable);
     function getColors(color, loop) {
         const base = getColor(color, 600, true);
 
