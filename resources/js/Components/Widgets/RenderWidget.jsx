@@ -12,6 +12,11 @@ function RenderWidget({widget, setModalContent}) {
     }
 
     function parserToken(str) {
+
+        if(!str || typeof str !== 'string') {
+            return str;
+        }
+
         return str.replace(/\{\{(.*)\}\}/g, (match, p1) => {
             let [token, ...funcs] = p1.split('|');
 
