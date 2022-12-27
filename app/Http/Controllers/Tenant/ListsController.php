@@ -52,7 +52,10 @@ class ListsController extends Controller
         ]);
 
         if(!($options['noFormat'] ?? false)){
-            $isOneRecord = is_subclass_of($results, Model::class) || $results instanceof stdClass;
+            $isOneRecord = is_subclass_of($results, Model::class) || $results instanceof stdClass || is_array($results);
+            if($isOneRecord && is_array($results)){
+                $results = (object) $results;
+            }
             $results = PrepareValues::prepareResults($isOneRecord ? collect($results) : $results, $list);
             if($isOneRecord){
                 $results['formats'] = $results['formats']->first();
