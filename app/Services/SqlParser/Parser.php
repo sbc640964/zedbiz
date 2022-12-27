@@ -152,11 +152,19 @@ class Parser
     {
         $subQuery = Parser::make($item->expr);
 
+//        if($type === 'join'){
+//            dd($item);
+//        }
+
         match ($type) {
             'select' => $this->query->selectSub($subQuery->getQuery(), $item->alias),
             'from' => $this->query->fromSub($subQuery->getQuery(), $item->alias),
-            'join' => $this->query->joinSub($subQuery->getQuery(), $item->alias, function(JoinClause $join) use ($item) {
-                $join->on($item->on[0]->expr, '=', $item->on[1]->expr);
+            'join' => $this->query->joinSub($subQuery->getQuery(), $item->alias ?? $item->expr->alias, function(JoinClause $join) use ($item) {
+                $on = \Str::of($item->on[0]->expr)->trim()->replace(' ', '');
+                $operator = $this->getOperator($on);
+                $first = $on->before($operator);
+                $second = $on->after($operator);
+                $join->on($first, $operator, $second);
             }),
         };
     }
