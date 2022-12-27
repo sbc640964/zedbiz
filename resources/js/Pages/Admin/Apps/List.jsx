@@ -124,9 +124,9 @@ function List({ collection, app, list, collections, records:originalRecords, wid
     }
 
     function getWidthActionsColumn() {
-        let base = list.settings.actions.filter(v => v.enabled && !v.grouped).length * 32;
+        let base = list.settings.actions.filter(v => v.enabled && !v.grouped).length * 36;
         if(groupActions().length > 0) {
-            base += 32;
+            base += 36;
         }
         base -= 8;
         return base + 32;
