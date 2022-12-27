@@ -46,7 +46,7 @@ class DoughnutWidget extends WidgetBase
 
             $query = \DB::select($sql);
 
-            $query = collect($query[0])->mapWithKeys(function($item, $key) use ($query) {
+            $query = collect($query[0] ?? [])->mapWithKeys(function($item, $key) use ($query) {
                 return [$key => collect($query)->pluck($key)->toArray()];
             });
 
