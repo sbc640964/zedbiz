@@ -7,10 +7,10 @@ function PaginationSection({data, className = '', ajax = false}) {
         <div className={`grid grid-cols-3 p-2 justify-between items-center border-t ${className}`}>
             <ResultsTablePaginator data={data} className="ml-2 rtl:ml-0 rtl:mr-2"/>
             <div className="flex items-center justify-center">
-                <PerPagePaginator data={data}/>
+                <PerPagePaginator data={data} url={ajax.url}/>
             </div>
             <div className="flex justify-end">
-                <Paginator links={data.links} ajax={ajax}/>
+                <Paginator links={data.links} url={false}/>
             </div>
         </div>
     )

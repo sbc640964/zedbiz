@@ -67,6 +67,8 @@ function List({open, setOpen, id, ...initialProps}) {
         setCurrentUrl(url);
     }
 
+    setUrl.url = props?.ajaxUrl;
+
     return (
         <EmptyModal
             open={open}
