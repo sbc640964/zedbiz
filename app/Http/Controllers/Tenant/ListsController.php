@@ -199,6 +199,11 @@ class ListsController extends Controller
     {
         $widgets = data_get($list->settings, 'widgets', []);
 
+        \Log::debug('getWidgets', [
+            'widgets' => $widgets,
+            'list' => $list
+        ]);
+
         if(empty($widgets) || $list->settings['widgets']['enabled'] !== true || empty($list->settings['widgets']['items'])){
             return [];
         }
