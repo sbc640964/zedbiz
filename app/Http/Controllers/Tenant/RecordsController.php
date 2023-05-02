@@ -85,9 +85,10 @@ class RecordsController extends Controller
             }elseif($list && ($list->settings['add_new_relationship_forms'] ?? false)) {
                 $relationshipConfig = $list->settings['add_new_relationship_forms'];
             }
-            if(tenant()->id === 6){
-                dd($collectionForm->model()->getTable());
-            }
+//            if(tenant()->id === 6){
+//                dd($collectionForm->model()->getTable());
+//            }
+            /** @var $collectionForm Collection */
             $id = $collectionForm->model()->create($attributes);
 
             if(collect(\Arr::dot($request->get('__extra_sections__', [])))->count() > 0){
