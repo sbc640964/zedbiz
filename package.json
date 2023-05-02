@@ -34,6 +34,7 @@
         "classnames": "^2.3.1",
         "collect.js": "^4.34.3",
         "lite-ui-sql-parser": "^1.8.31",
+        "logrocket": "^3.0.1",
         "moment": "^2.29.4",
         "node-sql-parser": "^4.5.0",
         "react-ace": "^10.1.0",
