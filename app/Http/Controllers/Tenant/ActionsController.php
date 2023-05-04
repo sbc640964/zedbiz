@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use App\Models\ListCollection;
-use App\Models\Model;
-use App\Models\Tenant\Tenant8\Expense;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -192,19 +191,29 @@ class ActionsController extends Controller
         $return = [];
         foreach ($form->columns as $column) {
             if($column['default'] ?? false) {
-                $return[$column['name']] = $this->getTokens($column['default'], [
+                 $value = $this->getTokens($column['default'], [
                     'USER' => auth()->user(),
                     'APP' => tenant(),
-                ]);
+                ],  in_array($column['type'], ['date', 'datetime', 'timestamp']));
+
+                 if($value instanceof Carbon){
+                     $value = $column['type'] === 'date' ? $value->format('Y-m-d') : $value->format('Y-m-d H:i:s');
+                 }
+
+                $return[$column['name']] = $value;
             }
         }
         return $return;
     }
 
-    private function getTokens($defaultValue, $data = [])
+    private function getTokens($defaultValue, $data = [], bool $returnRaw = false)
     {
         $defaultValue = Str::of($defaultValue);
         $tokens = $defaultValue->matchAll('/\{\{([^\}]+)\}\}/');
+
+        if ($returnRaw && $tokens->count() === 1){
+            return $this->getTokenValue($tokens->first(), $data, true);
+        }
 
         foreach ($tokens as $token) {
             $defaultValue = $defaultValue->replace('{{'.$token.'}}', $this->getTokenValue($token, $data));
@@ -213,14 +222,16 @@ class ActionsController extends Controller
         return $defaultValue->value();
     }
 
-    public function getTokenValue($token, $data = [])
+    public function getTokenValue($token, $data = [], bool $returnRaw = false)
     {
         $token = Str::of($token);
 
         $key =$token->before(':')->trim();
 
         if($key->startsWith('NOW')) {
-            return now()->format('Y-m-d\TH:i:s');
+            return now()->when(!$returnRaw, function($item) {
+                return $item->format('Y-m-d H:i:s');
+            });
         }
 
         return data_get($data, $key, '{{'.$token.'}}');
