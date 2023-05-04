@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use App\Models\ListCollection;
+use App\Models\Model;
 use App\Models\Tenant\Tenant8\Expense;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -134,11 +135,12 @@ class ActionsController extends Controller
         }
 
         if($action['fillForm'] ?? false) {
+            /** @var $record \Illuminate\Database\Eloquent\Model */
             $record = $this->getFormModel($action, $form, $relationship);
             $record->setHidden(['created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by']);
             $newCasts = collect($form->columns)->whereIn('type', ['date', 'datetime', 'timestamp'])->mapWithKeys(function($item) {
                 return [$item['name'] => match ($item['type']) {
-                    'date' => 'date:Y-m-d',
+                    'date' => 'datetime:Y-m-d',
                     'datetime' => 'datetime:Y-m-d H:i:s',
                     'timestamp' => 'timestamp',
                 }];
