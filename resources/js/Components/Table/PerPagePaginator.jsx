@@ -14,7 +14,7 @@ const PerPagePaginator =  React.memo(function ({options, data, url}){
             setRendered(true);
         } else {
             Inertia.put(isAdminScreen ? route('central-options.update') : route('options.update'), {
-                key: 'per_page-' + url ?? window.location.pathname.slice(1),
+                key: 'per_page-' + (url ?? window.location.pathname.slice(1)),
                 value: perPage,
                 redirect: window.location.pathname,
             }, {
