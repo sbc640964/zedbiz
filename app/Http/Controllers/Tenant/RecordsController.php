@@ -202,10 +202,12 @@ class RecordsController extends Controller
         ])->toArray();
 
         if(!empty($sectionsExtra)){
-            $collections = Collection::findMany(collect($sectionsExtra)
-                ->pluck('collection')
-                ->flatten()
-                ->toArray());
+            $collections = Collection::findMany(
+                collect($sectionsExtra)
+                    ->pluck('collection')
+                    ->flatten()
+                    ->toArray()
+            );
 
             foreach($sectionsExtra as $index => $section){
                 $collection = $collections->find($section['collection']);
