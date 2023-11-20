@@ -144,7 +144,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
                                                 <Input
                                                     type={'date'}
                                                     value={date.start.format('YYYY-MM-DD')}
-                                                    handleChange={date => setCustom({...custom, start: moment(date)})}
+                                                    handleChange={e => setCustom({...custom, start: moment(e.target.value)})}
                                                     className="w-full text-sm text-gray-700"
                                                 />
                                             </Label>
@@ -152,7 +152,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
                                                 <Input
                                                     type={'date'}
                                                     value={date.end.format('YYYY-MM-DD')}
-                                                    handleChange={date => setCustom({...custom, end: moment(date)})}
+                                                    handleChange={e => setCustom({...custom, end: moment(e.target.value)})}
                                                     className="w-full text-sm text-gray-700"
                                                 />
                                             </Label>
