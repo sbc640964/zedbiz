@@ -20,7 +20,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState({start: moment(initialValue?.start), end: moment(initialValue?.end)});
     const [label, setLabel] = useState('current month');
-    const [custom, setCustom] = useState({start: moment(), end: moment()});
+    const [custom, setCustom] = useState({start: moment(initialValue?.start), end: moment(initialValue?.end)});
     const [isFirstRender, setIsFirstRender] = useState(true);
 
     const presets =  useRef({
@@ -69,6 +69,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
             if (date.end && date.start && typeof onUpdate === 'function') {
                 onUpdate(date);
             }
+            setCustom(date);
         } else {
             setIsFirstRender(false);
         }
@@ -143,7 +144,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
                                             <Label value="End date">
                                                 <Input
                                                     type={'date'}
-                                                    value={date.start.format('YYYY-MM-DD')}
+                                                    value={custom.start.format('YYYY-MM-DD')}
                                                     handleChange={e => setCustom({...custom, start: moment(e.target.value)})}
                                                     className="w-full text-sm text-gray-700"
                                                 />
@@ -151,7 +152,7 @@ function DatesPickerRangeWidgets({onUpdate, initialValue}){
                                             <Label value="End date">
                                                 <Input
                                                     type={'date'}
-                                                    value={date.end.format('YYYY-MM-DD')}
+                                                    value={custom.end.format('YYYY-MM-DD')}
                                                     handleChange={e => setCustom({...custom, end: moment(e.target.value)})}
                                                     className="w-full text-sm text-gray-700"
                                                 />
